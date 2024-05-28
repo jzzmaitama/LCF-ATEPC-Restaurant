@@ -12,7 +12,6 @@ from time import strftime, localtime
 
 import numpy as np
 import torch
-import torch.nn.functional as F
 from torch import device
 from transformers.optimization import AdamW
 from transformers.models.bert.modeling_bert import BertModel
@@ -223,14 +222,14 @@ def main(config):
                 model.train()
                 batch = tuple(t.to(device) for t in batch)
                 input_ids_spc, input_mask, segment_ids, label_ids, polarities, valid_ids, l_mask, emotions = batch
-                print(f"Shape of input_ids_spc: {input_ids_spc.shape}")
-                print(f"Shape of segment_ids: {segment_ids.shape}")
-                print(f"Shape of input_mask: {input_mask.shape}")
-                print(f"Shape of label_ids: {label_ids.shape}")
-                print(f"Shape of polarities: {polarities.shape}")
-                print(f"Shape of valid_ids: {valid_ids.shape}")
-                print(f"Shape of l_mask: {l_mask.shape}")
-                print(f"Shape of emotions: {emotions.shape}")
+                # print(f"Shape of input_ids_spc: {input_ids_spc.shape}")
+                # print(f"Shape of segment_ids: {segment_ids.shape}")
+                # print(f"Shape of input_mask: {input_mask.shape}")
+                # print(f"Shape of label_ids: {label_ids.shape}")
+                # print(f"Shape of polarities: {polarities.shape}")
+                # print(f"Shape of valid_ids: {valid_ids.shape}")
+                # print(f"Shape of l_mask: {l_mask.shape}")
+                # print(f"Shape of emotions: {emotions.shape}")
 
                 loss = torch.tensor(model(input_ids_spc, segment_ids, input_mask, label_ids, polarities,
                                           valid_ids, l_mask, emotions), requires_grad=True)
