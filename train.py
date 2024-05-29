@@ -325,6 +325,7 @@ if __name__ == "__main__":
 
     index = GPUManager().auto_choice()
     device = torch.device("cuda:" + str(index) if torch.cuda.is_available() else "cpu")
+
     # device = torch.device("cpu")
     exp_configs = parse_experiments(experiments.config_path)
     n = 5
