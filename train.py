@@ -276,6 +276,9 @@ def main(config):
                         logger.info('*' * 80)
         return [max_apc_test_acc, max_apc_test_f1, max_ate_test_f1, max_emotion_test_acc,
                 max_emotion_test_f1]
+    output_dir = "model_output"
+    save_model_path = os.path.join(output_dir, 'saved_model')
+    save_model(save_model_path)
 
     return train()
 
@@ -318,11 +321,11 @@ if __name__ == "__main__":
                              help='Path of experiments config file')
     experiments = experiments.parse_args()
 
-    # from utils.Pytorch_GPUManager import GPUManager
+    from utils.Pytorch_GPUManager import GPUManager
 
-    # index = GPUManager().auto_choice()
-    # device = torch.device("cuda:" + str(index) if torch.cuda.is_available() else "cpu")
-    device = torch.device("cpu")
+    index = GPUManager().auto_choice()
+    device = torch.device("cuda:" + str(index) if torch.cuda.is_available() else "cpu")
+    # device = torch.device("cpu")
     exp_configs = parse_experiments(experiments.config_path)
     n = 5
     for config in exp_configs:
