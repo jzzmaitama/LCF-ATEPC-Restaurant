@@ -311,11 +311,9 @@ def parse_experiments(path):
                             help="Number of updates steps to accumulate before performing a backward/update pass.")
         parser.add_argument("--config_path", default='experiments.json', type=str,
                             help='Path of experiments config file')
-
         configs.append(parser.parse_args())
     return configs
 if __name__ == "__main__":
-
     experiments = argparse.ArgumentParser()
     experiments.add_argument('--config_path', default='experiments.json', type=str,
                              help='Path of experiments config file')
