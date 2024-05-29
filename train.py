@@ -146,8 +146,8 @@ def main(config):
 
             if eval_ATE:
                 # Assuming ATE evaluation is based on F1 score
-                ate_f1 = f1_score(label_ids.cpu(), torch.argmax(ate_logits, -1).cpu(), average='macro')
-                ate_result = max(ate_result, ate_f1)
+                ate_score = f1_score(label_ids.cpu(), torch.argmax(ate_logits, -1).cpu(), average='samples')
+                ate_result = max(ate_result, ate_score)
 
         if eval_APC:
             # Assuming APC evaluation is based on accuracy
@@ -209,8 +209,8 @@ def main(config):
         max_apc_test_acc = 0
         max_apc_test_f1 = 0
         max_ate_test_f1 = 0
-        max_emotion_test_acc = 0  # Add this line
-        max_emotion_test_f1 = 0  # Add this line
+        max_emotion_test_acc = 0
+        max_emotion_test_f1 = 0
 
         global_step = 0
         for epoch in range(int(args.num_train_epochs)):
@@ -250,10 +250,10 @@ def main(config):
                             max_apc_test_f1 = apc_result['max_apc_test_f1']
                         if ate_result > max_ate_test_f1:
                             max_ate_test_f1 = ate_result
-                        if emotion_result['max_emotion_test_acc'] > max_emotion_test_acc:  # Add this line
-                            max_emotion_test_acc = emotion_result['max_emotion_test_acc']  # Add this line
-                        if emotion_result['max_emotion_test_f1'] > max_emotion_test_f1:  # Add this line
-                            max_emotion_test_f1 = emotion_result['max_emotion_test_f1']  # Add this line
+                        if emotion_result['max_emotion_test_acc'] > max_emotion_test_acc:
+                            max_emotion_test_acc = emotion_result['max_emotion_test_acc']
+                        if emotion_result['max_emotion_test_f1'] > max_emotion_test_f1:
+                            max_emotion_test_f1 = emotion_result['max_emotion_test_f1']
 
                         current_apc_test_acc = apc_result['max_apc_test_acc']
                         current_apc_test_f1 = apc_result['max_apc_test_f1']
@@ -271,14 +271,14 @@ def main(config):
                         else:
                             logger.info(f'ATE_test_f1: {current_ate_test_f1}(max:{max_ate_test_f1})')
                         logger.info(
-                            f'Emotion_test_acc: {current_emotion_test_acc}(max: {max_emotion_test_acc})  '  # Add this line
+                            f'Emotion_test_acc: {current_emotion_test_acc}(max: {max_emotion_test_acc})' 
                             f'Emotion_test_f1: {current_emotion_test_f1}(max: {max_emotion_test_f1})')  # Add this line
                         logger.info('*' * 80)
         return [max_apc_test_acc, max_apc_test_f1, max_ate_test_f1, max_emotion_test_acc,
                 max_emotion_test_f1]
-    output_dir = "model_output"
-    save_model_path = os.path.join(output_dir, 'saved_model')
-    save_model(save_model_path)
+    # output_dir = "model_output"
+    # save_model_path = os.path.join(output_dir, 'saved_model')
+    # save_model(save_model_path)
 
     return train()
 
@@ -318,13 +318,11 @@ if __name__ == "__main__":
     experiments.add_argument('--config_path', default='experiments.json', type=str,
                              help='Path of experiments config file')
     experiments = experiments.parse_args()
-
-    from utils.Pytorch_GPUManager import GPUManager
-
-    index = GPUManager().auto_choice()
-    device = torch.device("cuda:" + str(index) if torch.cuda.is_available() else "cpu")
-
-    # device = torch.device("cpu")
+    # from utils.Pytorch_GPUManager import GPUManager
+    # index = GPUManager().auto_choice()
+    # device = torch.device("cuda:" + str(index) if torch.cuda.is_available() else "cpu")
+    #
+    device = torch.device("cpu")
     exp_configs = parse_experiments(experiments.config_path)
     n = 5
     for config in exp_configs:

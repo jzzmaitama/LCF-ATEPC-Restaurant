@@ -105,7 +105,7 @@ class DataProcessor(object):
 le = LabelEncoder()
 
 # Fit the LabelEncoder to the emotions
-le.fit(["Joy", "Anger", "Fear", "Sadness", "Surprise", "Disgust", "None"])  # Add all possible emotions
+le.fit(["Joy", "Anger", "Fear", "Sadness", "Surprise", "Disgust", "None"])
 
 
 class ATEPCProcessor(DataProcessor):
