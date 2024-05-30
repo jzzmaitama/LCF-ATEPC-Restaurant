@@ -16,7 +16,7 @@ from torch import device
 from transformers.optimization import AdamW
 from transformers.models.bert.modeling_bert import BertModel
 from transformers import BertTokenizer
-from seqeval.metrics import classification_report
+# from seqeval.metrics import classification_report
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler, TensorDataset)
 
 from utils.data_utils import ATEPCProcessor, convert_examples_to_features
@@ -131,7 +131,6 @@ def main(config):
                 else:
                     test_polarities_all = torch.cat((test_polarities_all, polarities), dim=0)
                     test_apc_logits_all = torch.cat((test_apc_logits_all, apc_logits), dim=0)
-
             if eval_emotion:
                 emotions = model.get_batch_emotions(emotions)
                 n_test_correct += (torch.argmax(emotion_logits, -1) == emotions).sum().item()
@@ -147,13 +146,11 @@ def main(config):
                 # Assuming ATE evaluation is based on F1 score
                 ate_score = f1_score(label_ids.cpu(), torch.argmax(ate_logits, -1).cpu(), average='samples')
                 ate_result = max(ate_result, ate_score)
-
         if eval_APC:
             # Assuming APC evaluation is based on accuracy
             apc_acc = accuracy_score(test_polarities_all.cpu(), torch.argmax(test_apc_logits_all, -1).cpu())
             apc_f1 = f1_score(test_polarities_all.cpu(), torch.argmax(test_apc_logits_all, -1).cpu(), average='samples')
             apc_result = {'max_apc_test_acc': apc_acc, 'max_apc_test_f1': apc_f1}
-
         if eval_emotion:
             # Assuming emotion evaluation is based on accuracy
             emotion_acc = accuracy_score(test_emotions_all.cpu(), torch.argmax(test_emotion_logits_all, -1).cpu())
