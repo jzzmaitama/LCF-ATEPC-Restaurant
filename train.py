@@ -143,7 +143,6 @@ def main(config):
                 else:
                     test_emotions_all = torch.cat((test_emotions_all, emotions), dim=0)
                     test_emotion_logits_all = torch.cat((test_emotion_logits_all, emotion_logits), dim=0)
-
             if eval_ATE:
                 # Assuming ATE evaluation is based on F1 score
                 ate_score = f1_score(label_ids.cpu(), torch.argmax(ate_logits, -1).cpu(), average='samples')
@@ -152,14 +151,14 @@ def main(config):
         if eval_APC:
             # Assuming APC evaluation is based on accuracy
             apc_acc = accuracy_score(test_polarities_all.cpu(), torch.argmax(test_apc_logits_all, -1).cpu())
-            apc_f1 = f1_score(test_polarities_all.cpu(), torch.argmax(test_apc_logits_all, -1).cpu(), average='macro')
+            apc_f1 = f1_score(test_polarities_all.cpu(), torch.argmax(test_apc_logits_all, -1).cpu(), average='samples')
             apc_result = {'max_apc_test_acc': apc_acc, 'max_apc_test_f1': apc_f1}
 
         if eval_emotion:
             # Assuming emotion evaluation is based on accuracy
             emotion_acc = accuracy_score(test_emotions_all.cpu(), torch.argmax(test_emotion_logits_all, -1).cpu())
             emotion_f1 = f1_score(test_emotions_all.cpu(), torch.argmax(test_emotion_logits_all, -1).cpu(),
-                                  average='macro')
+                                  average='samples')
             emotion_result = {'max_emotion_test_acc': emotion_acc, 'max_emotion_test_f1': emotion_f1}
 
         return apc_result, ate_result, emotion_result
@@ -258,8 +257,8 @@ def main(config):
                         current_apc_test_acc = apc_result['max_apc_test_acc']
                         current_apc_test_f1 = apc_result['max_apc_test_f1']
                         current_ate_test_f1 = round(ate_result, 2)
-                        current_emotion_test_acc = emotion_result['max_emotion_test_acc']  # Add this line
-                        current_emotion_test_f1 = emotion_result['max_emotion_test_f1']  # Add this line
+                        current_emotion_test_acc = emotion_result['max_emotion_test_acc']
+                        current_emotion_test_f1 = emotion_result['max_emotion_test_f1']
 
                         logger.info('*' * 80)
                         logger.info('Train {} Epoch{}, Evaluate for {}'.format(args.seed, epoch + 1, args.data_dir))
@@ -272,7 +271,7 @@ def main(config):
                             logger.info(f'ATE_test_f1: {current_ate_test_f1}(max:{max_ate_test_f1})')
                         logger.info(
                             f'Emotion_test_acc: {current_emotion_test_acc}(max: {max_emotion_test_acc})' 
-                            f'Emotion_test_f1: {current_emotion_test_f1}(max: {max_emotion_test_f1})')  # Add this line
+                            f'Emotion_test_f1: {current_emotion_test_f1}(max: {max_emotion_test_f1})')
                         logger.info('*' * 80)
         return [max_apc_test_acc, max_apc_test_f1, max_ate_test_f1, max_emotion_test_acc,
                 max_emotion_test_f1]
