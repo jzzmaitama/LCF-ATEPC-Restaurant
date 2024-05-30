@@ -6,6 +6,10 @@
 * transformers >= 4.5.1
 * Set `use_bert_spc = True` to improve the APC performance while only APC is considered.
 
+```sh
+pip install -r requirements.txt
+```
+
 ## Training
 We use the configuration file to manage experiments setting.
 
