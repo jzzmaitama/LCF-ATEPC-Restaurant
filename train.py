@@ -9,14 +9,14 @@ from sklearn.metrics import f1_score
 from sklearn.metrics import accuracy_score
 
 from time import strftime, localtime
-
+import torch.nn.functional as F
 import numpy as np
 import torch
 from torch import device
 from transformers.optimization import AdamW
 from transformers.models.bert.modeling_bert import BertModel
 from transformers import BertTokenizer
-# from seqeval.metrics import classification_report
+from seqeval.metrics import classification_report
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler, TensorDataset)
 
 from utils.data_utils import ATEPCProcessor, convert_examples_to_features
@@ -90,7 +90,7 @@ def main(config):
     all_lmask_ids = torch.tensor([f.label_mask for f in eval_features], dtype=torch.long)
     all_emotions = torch.tensor([f.emotions for f in eval_features], dtype=torch.long)
     eval_data = TensorDataset(all_spc_input_ids, all_input_mask, all_segment_ids, all_label_ids,
-                            all_polarities, all_valid_ids, all_lmask_ids, all_emotions)  # Modify this line
+                              all_polarities, all_valid_ids, all_lmask_ids, all_emotions)  # Modify this line
     # Run prediction for full data
     eval_sampler = RandomSampler(eval_data)
     eval_dataloader = DataLoader(eval_data, sampler=eval_sampler, batch_size=args.eval_batch_size)
@@ -102,6 +102,7 @@ def main(config):
         y_true = []
         y_pred = []
         n_test_correct, n_test_total = 0, 0
+        n_e_test_correct,n_e_test_total = 0,0
         test_apc_logits_all, test_polarities_all = None, None
         test_emotion_logits_all, test_emotions_all = None, None
         model.eval()
@@ -133,8 +134,8 @@ def main(config):
                     test_apc_logits_all = torch.cat((test_apc_logits_all, apc_logits), dim=0)
             if eval_emotion:
                 emotions = model.get_batch_emotions(emotions)
-                n_test_correct += (torch.argmax(emotion_logits, -1) == emotions).sum().item()
-                n_test_total += len(emotions)
+                n_e_test_correct += (torch.argmax(emotion_logits, -1) == emotions).sum().item()
+                n_e_test_total += len(emotions)
 
                 if test_emotions_all is None:
                     test_emotions_all = emotions
@@ -143,21 +144,55 @@ def main(config):
                     test_emotions_all = torch.cat((test_emotions_all, emotions), dim=0)
                     test_emotion_logits_all = torch.cat((test_emotion_logits_all, emotion_logits), dim=0)
             if eval_ATE:
-                # Assuming ATE evaluation is based on F1 score
-                ate_score = f1_score(label_ids.cpu(), torch.argmax(ate_logits, -1).cpu(), average='samples')
-                ate_result = max(ate_result, ate_score)
+                if not args.use_bert_spc:
+                    label_ids = model.get_batch_token_labels_bert_base_indices(label_ids)
+                ate_logits = torch.argmax(F.log_softmax(ate_logits, dim=2), dim=2)
+                ate_logits = ate_logits.detach().cpu().numpy()
+                label_ids = label_ids.to('cpu').numpy()
+                input_mask = input_mask.to('cpu').numpy()
+                for i, label in enumerate(label_ids):
+                    temp_1 = []
+                    temp_2 = []
+                    for j, m in enumerate(label):
+                        if j == 0:
+                            continue
+                        elif label_ids[i][j] == len(label_list):
+                            y_true.append(temp_1)
+                            y_pred.append(temp_2)
+                            break
+                        else:
+                            temp_1.append(label_map.get(label_ids[i][j], 'O'))
+                            temp_2.append(label_map.get(ate_logits[i][j], 'O'))
         if eval_APC:
-            # Assuming APC evaluation is based on accuracy
-            apc_acc = accuracy_score(test_polarities_all.cpu(), torch.argmax(test_apc_logits_all, -1).cpu())
-            apc_f1 = f1_score(test_polarities_all.cpu(), torch.argmax(test_apc_logits_all, -1).cpu(), average='samples')
-            apc_result = {'max_apc_test_acc': apc_acc, 'max_apc_test_f1': apc_f1}
-        if eval_emotion:
-            # Assuming emotion evaluation is based on accuracy
-            emotion_acc = accuracy_score(test_emotions_all.cpu(), torch.argmax(test_emotion_logits_all, -1).cpu())
-            emotion_f1 = f1_score(test_emotions_all.cpu(), torch.argmax(test_emotion_logits_all, -1).cpu(),
-                                  average='samples')
-            emotion_result = {'max_emotion_test_acc': emotion_acc, 'max_emotion_test_f1': emotion_f1}
+            test_acc = n_test_correct / n_test_total
+            if args.dataset in {'camera', 'car', 'phone', 'notebook'}:
+                test_f1 = f1_score(torch.argmax(test_apc_logits_all, -1).cpu(), test_polarities_all.cpu(),
+                                   labels=[0, 1], average='macro')
+            else:
+                test_f1 = f1_score(torch.argmax(test_apc_logits_all, -1).cpu(), test_polarities_all.cpu(),
+                                   labels=[0, 1, 2], average='macro')
+            test_acc = round(test_acc * 100, 2)
+            test_f1 = round(test_f1 * 100, 2)
+            apc_result = {'max_apc_test_acc': test_acc, 'max_apc_test_f1': test_f1}
 
+        if eval_ATE:
+            report = classification_report(y_true, y_pred, digits=4)
+            tmps = report.split()
+            ate_result = round(float(tmps[7]) * 100, 2)
+
+        if eval_emotion:
+            emotion_acc = n_e_test_correct / n_e_test_total
+
+            # Flatten the tensors
+            test_emotion_pred_all_flat = torch.argmax(test_emotion_logits_all, -1).view(-1).cpu()
+            test_emotions_all_flat = test_emotions_all.view(-1).cpu()
+
+            # Compute the F1 score
+            emotion_f1 = f1_score(test_emotion_pred_all_flat, test_emotions_all_flat, labels=[0, 1, 2, 3, 4, 5],
+                                  average='macro')
+            emotion_acc = round(emotion_acc * 100, 2)
+            emotion_f1 = round(emotion_f1 * 100, 2)
+            emotion_result = {'max_emotion_test_acc': emotion_acc, 'max_emotion_test_f1': emotion_f1}
         return apc_result, ate_result, emotion_result
 
     def save_model(path):
@@ -188,14 +223,6 @@ def main(config):
         all_lmask_ids = torch.tensor([f.label_mask for f in train_features], dtype=torch.long)
         all_polarities = torch.tensor([f.polarities for f in train_features], dtype=torch.long)
         all_emotions = torch.tensor([f.emotions for f in train_features], dtype=torch.long)
-        # print("Shape of all_spc_input_ids: ", all_spc_input_ids.shape)
-        # print("Shape of all_input_mask: ", all_input_mask.shape)
-        # print("Shape of all_segment_ids: ", all_segment_ids.shape)
-        # print("Shape of all_label_ids: ", all_label_ids.shape)
-        # print("Shape of all_valid_ids: ", all_valid_ids.shape)
-        # print("Shape of all_lmask_ids: ", all_lmask_ids.shape)
-        # print("Shape of all_polarities: ", all_polarities.shape)
-        # print("Shape of all_emotions: ", all_emotions.shape)
         train_data = TensorDataset(all_spc_input_ids, all_input_mask, all_segment_ids,
                                    all_label_ids, all_polarities, all_valid_ids, all_lmask_ids,
                                    all_emotions)
@@ -267,11 +294,12 @@ def main(config):
                         else:
                             logger.info(f'ATE_test_f1: {current_ate_test_f1}(max:{max_ate_test_f1})')
                         logger.info(
-                            f'Emotion_test_acc: {current_emotion_test_acc}(max: {max_emotion_test_acc})' 
+                            f'Emotion_test_acc: {current_emotion_test_acc}(max: {max_emotion_test_acc})'
                             f'Emotion_test_f1: {current_emotion_test_f1}(max: {max_emotion_test_f1})')
                         logger.info('*' * 80)
         return [max_apc_test_acc, max_apc_test_f1, max_ate_test_f1, max_emotion_test_acc,
                 max_emotion_test_f1]
+
     # output_dir = "model_output"
     # save_model_path = os.path.join(output_dir, 'saved_model')
     # save_model(save_model_path)
@@ -309,6 +337,8 @@ def parse_experiments(path):
                             help='Path of experiments config file')
         configs.append(parser.parse_args())
     return configs
+
+
 if __name__ == "__main__":
     experiments = argparse.ArgumentParser()
     experiments.add_argument('--config_path', default='experiments.json', type=str,

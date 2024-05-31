@@ -105,7 +105,7 @@ class DataProcessor(object):
 le = LabelEncoder()
 
 # Fit the LabelEncoder to the emotions
-le.fit(["Joy", "Anger", "Fear", "Sadness", "Surprise", "Disgust", "None"])
+le.fit(["Joy", "Anger", "Fear", "Sadness", "Surprise", "Disgust"])
 
 
 class ATEPCProcessor(DataProcessor):
@@ -251,5 +251,4 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
                           valid_ids=valid,
                           label_mask=label_mask))
 
-    print(len(features[5].emotions))
     return features
