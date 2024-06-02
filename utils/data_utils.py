@@ -65,15 +65,15 @@ def readfile(filename):
                 sentence = []
                 tag = []
                 polarity = []
-                emotion = []  # Add this line
+                emotion = []
             continue
         splits = line.split(' ')
-        if len(splits) != 4:  # Modify this line
+        if len(splits) != 4:
             print('warning! detected error line(s) in input file:{}'.format(line))
         sentence.append(splits[0])
-        tag.append(splits[-3])  # Modify this line
-        polarity.append(int(splits[-2]))  # Modify this line
-        emotion.append(splits[-1][:-1])  # Add this line
+        tag.append(splits[-3])
+        polarity.append(int(splits[-2]))
+        emotion.append(splits[-1][:-1])
 
     if len(sentence) > 0:
         data.append((sentence, tag, polarity, emotion))  # Modify this line
@@ -122,7 +122,6 @@ class ATEPCProcessor(DataProcessor):
             self._read_tsv(os.path.join(data_dir, "Restaurants.atepc.test.dat")), "test")
 
     def get_labels(self):
-        # return ["O", "B-ASP", "I-ASP", "[CLS]", "[SEP]", "Anger", "Disgust", "Fear", "Joy", "Sadness", "Surprise"]
         return ["O", "B-ASP", "I-ASP", "[CLS]", "[SEP]"]
 
     def _create_examples(self, lines, set_type):
@@ -131,13 +130,13 @@ class ATEPCProcessor(DataProcessor):
             aspect = []
             aspect_tag = []
             aspect_polarity = [-1]
-            aspect_emotion = []  # Add this line
-            for w, t, p, e in zip(sentence, tag, polarity, emotion):  # Modify this line
+            aspect_emotion = []
+            for w, t, p, e in zip(sentence, tag, polarity, emotion):
                 if p != -1:
                     aspect.append(w)
                     aspect_tag.append(t)
                     aspect_polarity.append(-1)
-                aspect_emotion.append(e)  # Add this line
+                aspect_emotion.append(e)
             guid = "%s-%s" % (set_type, i)
             text_a = sentence
             text_b = aspect
@@ -164,7 +163,7 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
         tokens = []
         labels = []
         polarities = []
-        emotions = []  # Add this line
+        emotions = []
         valid = []
         label_mask = []
         text_spc_tokens.extend(['[SEP]'])
