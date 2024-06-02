@@ -1,0 +1,66 @@
+log file: logs/240602-174525.log
+--------------------------------------------------------------------------------
+Config 1 (totally 1 configs)
+No.1 training process of 5
+>>> dataset: restaurant
+>>> output_dir: output
+>>> SRD: 10
+>>> learning_rate: 0.0001
+>>> use_unique_bert: True
+>>> use_bert_spc: True
+>>> local_context_focus: fusion
+>>> num_train_epochs: 1.0
+>>> train_batch_size: 6
+>>> dropout: 0.1
+>>> max_seq_length: 6
+>>> eval_batch_size: 32
+>>> eval_steps: 20
+>>> gradient_accumulation_steps: 1
+>>> config_path: experiments.json
+>>> device: cpu
+>>> seed: 1
+>>> bert_model: bert-base-uncased
+>>> data_dir: atepc_datasets/restaurant
+***** Running training *****
+  Num examples = 3866
+  Batch size = 6
+  Num steps = 644
+################################################################################
+Train 1 Epoch1
+################################################################################
+********************************************************************************
+Train 1 Epoch1, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 23.99(max: 23.99)  APC_test_f1: 15.47(max: 15.47)
+ATE_test_F1: 15.47(max: 15.47) (Unreliable since `use_bert_spc` is "True".)
+Emotion_test_acc: 0.0(max: 0)Emotion_test_f1: 0.0(max: 0)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch1, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 23.99(max: 23.99)  APC_test_f1: 15.47(max: 15.47)
+ATE_test_F1: 15.47(max: 15.47) (Unreliable since `use_bert_spc` is "True".)
+Emotion_test_acc: 0.0(max: 0)Emotion_test_f1: 0.0(max: 0)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch1, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 23.99(max: 23.99)  APC_test_f1: 15.47(max: 15.47)
+ATE_test_F1: 15.47(max: 15.47) (Unreliable since `use_bert_spc` is "True".)
+Emotion_test_acc: 0.0(max: 0)Emotion_test_f1: 0.0(max: 0)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch1, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 23.99(max: 23.99)  APC_test_f1: 15.47(max: 15.47)
+ATE_test_F1: 15.47(max: 15.47) (Unreliable since `use_bert_spc` is "True".)
+Emotion_test_acc: 0.0(max: 0)Emotion_test_f1: 0.0(max: 0)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch1, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 23.99(max: 23.99)  APC_test_f1: 15.47(max: 15.47)
+ATE_test_F1: 15.47(max: 15.47) (Unreliable since `use_bert_spc` is "True".)
+Emotion_test_acc: 0.0(max: 0)Emotion_test_f1: 0.0(max: 0)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch1, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 23.99(max: 23.99)  APC_test_f1: 15.47(max: 15.47)
+ATE_test_F1: 15.47(max: 15.47) (Unreliable since `use_bert_spc` is "True".)
+Emotion_test_acc: 0.0(max: 0)Emotion_test_f1: 0.0(max: 0)
+********************************************************************************
