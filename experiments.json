@@ -4,12 +4,12 @@
     "output_dir": "output",
     "use_unique_bert": true,
     "use_bert_spc_for_apc": false,
-    "SRD": 6,
-    "learning_rate": 1e-4,
-    "dropout": 0.5,
+    "SRD": 5,
+    "learning_rate": 5e-5,
+    "dropout": 0,
     "num_train_epochs": 1,
-    "train_batch_size": 4,
-    "max_seq_length": 6,
+    "train_batch_size": 6,
+    "max_seq_length": 8,
     "local_context_focus": "fusion"
   }
 }
