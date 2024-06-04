@@ -11,7 +11,6 @@ from sklearn.preprocessing import LabelEncoder
 
 class InputExample(object):
     """A single training/test example for simple sequence classification."""
-
     def __init__(self, guid, text_a, text_b=None, sentence_label=None, aspect_label=None, polarity=None, emotion=None):
         """Constructs a InputExample.
 

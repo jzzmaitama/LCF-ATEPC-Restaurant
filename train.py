@@ -5,8 +5,11 @@ import json
 import logging
 import os, sys
 import random
+
+from imblearn.under_sampling import RandomUnderSampler
 from sklearn.metrics import f1_score
 from sklearn.metrics import accuracy_score
+from imblearn.over_sampling import RandomOverSampler, SMOTE
 
 from time import strftime, localtime
 import torch.nn.functional as F
@@ -179,22 +182,19 @@ def main(config):
             report = classification_report(y_true, y_pred, digits=4)
             tmps = report.split()
             ate_result = round(float(tmps[7]) * 100, 2)
-
         if eval_emotion:
             emotion_acc = n_e_test_correct / n_e_test_total
-
             # Flatten the tensors
             test_emotion_pred_all_flat = torch.argmax(test_emotion_logits_all, -1).view(-1).cpu()
+            print(test_emotion_pred_all_flat)
             test_emotions_all_flat = test_emotions_all.view(-1).cpu()
-
+            print(test_emotions_all_flat)
             # Compute the F1 score
-            emotion_f1 = f1_score(test_emotion_pred_all_flat, test_emotions_all_flat, labels=[0, 1, 2, 3, 4, 5],
-                                  average='macro')
+            emotion_f1 = f1_score(test_emotion_pred_all_flat, test_emotions_all_flat, labels=[0, 1, 2, 3, 4, 5], average='macro')
             emotion_acc = round(emotion_acc * 100, 2)
             emotion_f1 = round(emotion_f1 * 100, 2)
             emotion_result = {'max_emotion_test_acc': emotion_acc, 'max_emotion_test_f1': emotion_f1}
         return apc_result, ate_result, emotion_result
-
     def save_model(path):
         # Save a trained model and the associated configuration,
         # Take care of the storage!
@@ -207,7 +207,6 @@ def main(config):
                         "num_labels": len(label_list) + 1, "label_map": label_map}
         json.dump(model_config, open(os.path.join(path, "config.json"), "w"))
         logger.info('save model to: {}'.format(path))
-
     def train():
         train_features = convert_examples_to_features(
             train_examples, label_list, args.max_seq_length, tokenizer)
@@ -222,11 +221,11 @@ def main(config):
         all_valid_ids = torch.tensor([f.valid_ids for f in train_features], dtype=torch.long)
         all_lmask_ids = torch.tensor([f.label_mask for f in train_features], dtype=torch.long)
         all_polarities = torch.tensor([f.polarities for f in train_features], dtype=torch.long)
-        all_emotions = torch.tensor([f.emotions for f in train_features], dtype=torch.long)
+        emotions = [f.emotions for f in train_features]
+        all_emotions = torch.tensor(emotions, dtype=torch.long)
         train_data = TensorDataset(all_spc_input_ids, all_input_mask, all_segment_ids,
                                    all_label_ids, all_polarities, all_valid_ids, all_lmask_ids,
                                    all_emotions)
-
         train_sampler = SequentialSampler(train_data)
         train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=args.train_batch_size)
         max_apc_test_acc = 0
@@ -245,14 +244,6 @@ def main(config):
                 model.train()
                 batch = tuple(t.to(device) for t in batch)
                 input_ids_spc, input_mask, segment_ids, label_ids, polarities, valid_ids, l_mask, emotions = batch
-                # print(f"Shape of input_ids_spc: {input_ids_spc.shape}")
-                # print(f"Shape of segment_ids: {segment_ids.shape}")
-                # print(f"Shape of input_mask: {input_mask.shape}")
-                # print(f"Shape of label_ids: {label_ids.shape}")
-                # print(f"Shape of polarities: {polarities.shape}")
-                # print(f"Shape of valid_ids: {valid_ids.shape}")
-                # print(f"Shape of l_mask: {l_mask.shape}")
-                # print(f"Shape of emotions: {emotions.shape}")
 
                 loss = torch.tensor(model(input_ids_spc, segment_ids, input_mask, label_ids, polarities,
                                           valid_ids, l_mask, emotions), requires_grad=True)
@@ -295,7 +286,7 @@ def main(config):
                             logger.info(f'ATE_test_f1: {current_ate_test_f1}(max:{max_ate_test_f1})')
                         logger.info(
                             f'Emotion_test_acc: {current_emotion_test_acc}(max: {max_emotion_test_acc})'
-                            f'Emotion_test_f1: {current_emotion_test_f1}(max: {max_emotion_test_f1})')
+                            f' Emotion_test_f1: {current_emotion_test_f1}(max: {max_emotion_test_f1})')
                         logger.info('*' * 80)
         return [max_apc_test_acc, max_apc_test_f1, max_ate_test_f1, max_emotion_test_acc,
                 max_emotion_test_f1]

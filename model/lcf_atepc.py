@@ -79,13 +79,25 @@ class LCF_ATEPC(BertForTokenClassification):
         polarities = torch.from_numpy(polarities).long().to(self.args.device)
         return polarities
 
+    # def get_batch_emotions(self, b_emotions):
+    #     b_emotions = b_emotions.detach().cpu().numpy()
+    #     batch_size = b_emotions.shape[0]
+    #     max_seq_length = self.args.max_seq_length
+    #     emotions = np.zeros((batch_size, max_seq_length))
+    #     for i in range(batch_size):
+    #         emotions[i, :len(b_emotions[i])] = b_emotions[i]
+    #     emotions = torch.from_numpy(emotions).long().to(self.args.device)
+    #     return emotions
     def get_batch_emotions(self, b_emotions):
         b_emotions = b_emotions.detach().cpu().numpy()
-        batch_size = b_emotions.shape[0]
-        max_seq_length = self.args.max_seq_length
-        emotions = np.zeros((batch_size, max_seq_length))
-        for i in range(batch_size):
-            emotions[i, :len(b_emotions[i])] = b_emotions[i]
+        shape = b_emotions.shape
+        emotions = np.zeros((shape[0], self.args.max_seq_length))
+        for i in range(shape[0]):
+            emotions_idx = np.flatnonzero(b_emotions[i] + 1)
+            try:
+                emotions[i, :len(emotions_idx)] = b_emotions[i, emotions_idx[0]]
+            except:
+                pass
         emotions = torch.from_numpy(emotions).long().to(self.args.device)
         return emotions
 

@@ -3,12 +3,12 @@
     "dataset": "restaurant",
     "output_dir": "output",
     "use_unique_bert": true,
-    "use_bert_spc_for_apc": false,
+    "use_bert_spc_for_apc": true,
     "SRD": 5,
-    "learning_rate": 5e-5,
-    "dropout": 0,
-    "num_train_epochs": 1,
-    "train_batch_size": 6,
+    "learning_rate": 3e-5,
+    "dropout": 0.2,
+    "num_train_epochs": 2,
+    "train_batch_size":8,
     "max_seq_length": 8,
     "local_context_focus": "fusion"
   }
