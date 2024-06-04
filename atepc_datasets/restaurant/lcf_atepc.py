@@ -30,31 +30,18 @@ class LCF_ATEPC(BertForTokenClassification):
         config = bert_base_model.config
         self.bert_for_global_context = bert_base_model
         self.args = args
-        # do not init lcf layer if BERT-SPC or BERT-BASE specified
-        # if self.args.local_context_focus in {'cdw', 'cdm', 'fusion'}:
-        if not self.args.use_unique_bert:
-            self.bert_for_local_context = copy.deepcopy(self.bert_for_global_context)
-        else:
-            self.bert_for_local_context = self.bert_for_global_context
+        # Initialize the local context BERT model
+        self.bert_for_local_context = copy.deepcopy(
+            self.bert_for_global_context) if not self.args.use_unique_bert else self.bert_for_global_context
         self.pooler = BertPooler(config)
         self.num_emotion_labels = 6
-        # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.dense = torch.nn.Linear(768, 4)  # For aspect categories
-        self.emotion_classifier = nn.Linear(config.hidden_size, 6)  # 6 for the number of emotions
-        self.bert_global_focus = self.bert_for_global_context
+        self.emotion_classifier = nn.Linear(config.hidden_size, self.num_emotion_labels)  # 6 for the number of emotions
         self.dropout = nn.Dropout(self.args.dropout)
         self.SA1 = SelfAttention(config, args)
         self.SA2 = SelfAttention(config, args)
         self.linear_double = nn.Linear(768 * 2, 768)
         self.linear_triple = nn.Linear(768 * 3, 768)
-
-    @property
-    def device(self):
-        return self._device
-
-    @device.setter
-    def device(self, value):
-        self._device = value
 
     def get_batch_token_labels_bert_base_indices(self, labels):
         if labels is None:
@@ -64,30 +51,35 @@ class LCF_ATEPC(BertForTokenClassification):
             sep_index = np.argmax((labels[text_i] == 5))
             labels[text_i][sep_index + 1:] = 0
         return torch.tensor(labels).to(self.args.device)
+
+    def get_batch_emotions(self, b_emotions):
+        b_emotions = b_emotions.detach().cpu().numpy()
+        shape = b_emotions.shape
+        emotions = np.zeros((shape[0], self.args.max_seq_length))
+        for i in range(shape[0]):
+            emotions_idx = np.flatnonzero(b_emotions[i] + 1)
+            try:
+                emotions[i, :len(emotions_idx)] = b_emotions[i, emotions_idx[0]]
+            except:
+                pass
+        emotions = torch.from_numpy(emotions).long().to(self.args.device)
+        return emotions
+
     def get_batch_polarities(self, b_polarities):
         b_polarities = b_polarities.detach().cpu().numpy()
+        print(b_polarities)
         shape = b_polarities.shape
+        print(b_polarities.shape)
         polarities = np.zeros((shape[0]))
-        i = 0
-        for polarity in b_polarities:
+        for i, polarity in enumerate(b_polarities):
             polarity_idx = np.flatnonzero(polarity + 1)
             try:
                 polarities[i] = polarity[polarity_idx[0]]
             except:
                 pass
-            i += 1
-        polarities = torch.from_numpy(polarities).long().to(self.args.device)
-        return polarities
+        return torch.from_numpy(polarities).long().to(self.args.device)
 
-    def get_batch_emotions(self, b_emotions):
-        b_emotions = b_emotions.detach().cpu().numpy()
-        batch_size = b_emotions.shape[0]
-        max_seq_length = self.args.max_seq_length
-        emotions = np.zeros((batch_size, max_seq_length))
-        for i in range(batch_size):
-            emotions[i, :len(b_emotions[i])] = b_emotions[i]
-        emotions = torch.from_numpy(emotions).long().to(self.args.device)
-        return emotions
+
 
     def feature_dynamic_weighted(self, text_local_indices, polarities):
         text_ids = text_local_indices.detach().cpu().numpy()
@@ -112,8 +104,7 @@ class LCF_ATEPC(BertForTokenClassification):
                     distances[i] = 1
             for i in range(len(distances)):
                 weighted_text_raw_indices[text_i][i] = weighted_text_raw_indices[text_i][i] * distances[i]
-        weighted_text_raw_indices = torch.from_numpy(weighted_text_raw_indices)
-        return weighted_text_raw_indices.to(self.args.device)
+        return torch.from_numpy(weighted_text_raw_indices).to(self.args.device)
 
     def feature_dynamic_mask(self, text_local_indices, polarities):
         text_ids = text_local_indices.detach().cpu().numpy()
@@ -128,16 +119,10 @@ class LCF_ATEPC(BertForTokenClassification):
             except:
                 asp_begin = 0
             asp_len = len(a_ids)
-            if asp_begin >= SRD:
-                mask_begin = asp_begin - SRD
-            else:
-                mask_begin = 0
-            for i in range(mask_begin):
-                masked_text_raw_indices[text_i][i] = np.zeros(768, dtype=np.float64)
-            for j in range(asp_begin + asp_len + SRD - 1, self.args.max_seq_length):
-                masked_text_raw_indices[text_i][j] = np.zeros(768, dtype=np.float64)
-        masked_text_raw_indices = torch.from_numpy(masked_text_raw_indices)
-        return masked_text_raw_indices.to(self.args.device)
+            mask_begin = max(0, asp_begin - SRD)
+            masked_text_raw_indices[text_i, :mask_begin] = 0
+            masked_text_raw_indices[text_i, asp_begin + asp_len + SRD:] = 0
+        return torch.from_numpy(masked_text_raw_indices).to(self.args.device)
 
     def get_ids_for_local_context_extractor(self, text_indices):
         text_ids = text_indices.detach().cpu().numpy()
@@ -147,18 +132,7 @@ class LCF_ATEPC(BertForTokenClassification):
         return torch.tensor(text_ids).to(self.args.device)
 
     def forward(self, input_ids_spc, token_type_ids=None, attention_mask=None, labels=None, polarities=None,
-                valid_ids=None,
-                attention_mask_label=None, emotions=None):
-        print(f"Shape of input_ids_spc: {input_ids_spc.shape}")
-        print(f"Shape of token_type_ids: {token_type_ids.shape}")
-        print(f"Shape of attention_mask: {attention_mask.shape}")
-        print(f"Shape of labels: {labels.shape}")
-        print(f"Shape of polarities: {polarities.shape}")
-        print(f"Shape of valid_ids: {valid_ids.shape}")
-        print(f"Shape of attention_mask_label: {attention_mask_label.shape}")
-        print(f"Shape of emotions: {emotions.shape}")
-
-        global cat_out
+                valid_ids=None, attention_mask_label=None, emotions=None):
         if not self.args.use_bert_spc:
             input_ids_spc = self.get_ids_for_local_context_extractor(input_ids_spc)
             labels = self.get_batch_token_labels_bert_base_indices(labels)
@@ -166,6 +140,18 @@ class LCF_ATEPC(BertForTokenClassification):
             'last_hidden_state']
         polarity_labels = self.get_batch_polarities(polarities)
         emotion_labels = self.get_batch_emotions(emotions)
+
+        print("Polarity Labels Unique Values:", torch.unique(polarity_labels))
+        print("Polarity Labels Shape:", polarity_labels.shape)
+
+        # Debugging output to check the range and values of emotion labels
+        print("Emotion Labels Unique Values:", torch.unique(emotion_labels))
+        print("Emotion Labels Shape:", emotion_labels.shape)
+
+        # Ensure emotion labels are within the valid range
+        if torch.min(emotion_labels) < 0 or torch.max(emotion_labels) >= self.num_emotion_labels:
+            raise ValueError("Emotion labels are out of bounds. They should be in the range [0, {}]".format(
+                self.num_emotion_labels - 1))
 
         batch_size, max_len, feat_dim = global_context_out.shape
         global_valid_output = torch.zeros(batch_size, max_len, feat_dim, dtype=torch.float32).to(self.args.device)
@@ -181,12 +167,8 @@ class LCF_ATEPC(BertForTokenClassification):
         emotion_logits = self.emotion_classifier(global_context_out)
 
         if self.args.local_context_focus is not None:
-
-            if self.args.use_bert_spc:
-                local_context_ids = self.get_ids_for_local_context_extractor(input_ids_spc)
-            else:
-                local_context_ids = input_ids_spc
-
+            local_context_ids = self.get_ids_for_local_context_extractor(
+                input_ids_spc) if self.args.use_bert_spc else input_ids_spc
             local_context_out = self.bert_for_local_context(input_ids_spc)['last_hidden_state']
             batch_size, max_len, feat_dim = local_context_out.shape
             local_valid_output = torch.zeros(batch_size, max_len, feat_dim, dtype=torch.float32).to(self.args.device)
@@ -201,38 +183,38 @@ class LCF_ATEPC(BertForTokenClassification):
             if 'cdm' in self.args.local_context_focus:
                 cdm_vec = self.feature_dynamic_mask(local_context_ids, polarities)
                 cdm_context_out = torch.mul(local_context_out, cdm_vec)
-                cdm_context_out = self.SA1(cdm_context_out)
                 cat_out = torch.cat((global_context_out, cdm_context_out), dim=-1)
                 cat_out = self.linear_double(cat_out)
+                logits = self.classifier(cat_out)
+                emotion_logits = self.emotion_classifier(cat_out)
             elif 'cdw' in self.args.local_context_focus:
                 cdw_vec = self.feature_dynamic_weighted(local_context_ids, polarities)
                 cdw_context_out = torch.mul(local_context_out, cdw_vec)
-                cdw_context_out = self.SA1(cdw_context_out)
                 cat_out = torch.cat((global_context_out, cdw_context_out), dim=-1)
                 cat_out = self.linear_double(cat_out)
+                logits = self.classifier(cat_out)
+                emotion_logits = self.emotion_classifier(cat_out)
             elif 'fusion' in self.args.local_context_focus:
                 cdm_vec = self.feature_dynamic_mask(local_context_ids, polarities)
                 cdm_context_out = torch.mul(local_context_out, cdm_vec)
+                cdm_context_out = self.SA1(cdm_context_out)
                 cdw_vec = self.feature_dynamic_weighted(local_context_ids, polarities)
                 cdw_context_out = torch.mul(local_context_out, cdw_vec)
-                cat_out = torch.cat((global_context_out, cdw_context_out, cdm_context_out), dim=-1)
+                cdw_context_out = self.SA2(cdw_context_out)
+                cat_out = torch.cat((global_context_out, cdm_context_out, cdw_context_out), dim=-1)
                 cat_out = self.linear_triple(cat_out)
-            sa_out = self.SA2(cat_out)
-            pooled_out = self.pooler(sa_out)
+                logits = self.classifier(cat_out)
+                emotion_logits = self.emotion_classifier(cat_out)
+            else:
+                logits = ate_logits
         else:
-            pooled_out = self.pooler(global_context_out)
-        pooled_out = self.dropout(pooled_out)
-        apc_logits = self.dense(pooled_out)
+            logits = ate_logits
 
+        outputs = (logits,)
+        loss_fct = CrossEntropyLoss(ignore_index=0)
         if labels is not None:
-            loss_fct = CrossEntropyLoss(ignore_index=0)
-            loss_sen = CrossEntropyLoss()
-            ignore_index = -1
-            loss_emo = CrossEntropyLoss(ignore_index=ignore_index)
-            loss_ate = loss_fct(ate_logits.view(-1, self.num_labels), labels.view(-1))
-            loss_apc = loss_sen(apc_logits, polarity_labels)
-            loss_emo = loss_emo(emotion_logits.view(-1, self.num_emotion_labels), emotion_labels.view(-1))
-            total_loss = loss_ate + loss_apc + loss_emo
-            return total_loss
-        else:
-            return ate_logits, apc_logits, emotion_logits
+            loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+            emotion_loss = loss_fct(emotion_logits.view(-1, self.num_emotion_labels), emotion_labels.view(-1))
+            outputs = (loss + emotion_loss,) + outputs
+
+        return outputs

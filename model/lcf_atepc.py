@@ -1,3 +1,5 @@
+
+
 # -*- coding: utf-8 -*-
 # file: lcf_atepc.py
 
@@ -187,12 +189,16 @@ class LCF_ATEPC(BertForTokenClassification):
                 cdm_context_out = self.SA1(cdm_context_out)
                 cat_out = torch.cat((global_context_out, cdm_context_out), dim=-1)
                 cat_out = self.linear_double(cat_out)
+                emotion_logits = self.emotion_classifier(cat_out)
+
             elif 'cdw' in self.args.local_context_focus:
                 cdw_vec = self.feature_dynamic_weighted(local_context_ids, polarities)
                 cdw_context_out = torch.mul(local_context_out, cdw_vec)
                 cdw_context_out = self.SA1(cdw_context_out)
                 cat_out = torch.cat((global_context_out, cdw_context_out), dim=-1)
                 cat_out = self.linear_double(cat_out)
+                emotion_logits = self.emotion_classifier(cat_out)
+
             elif 'fusion' in self.args.local_context_focus:
                 cdm_vec = self.feature_dynamic_mask(local_context_ids, polarities)
                 cdm_context_out = torch.mul(local_context_out, cdm_vec)
@@ -200,7 +206,9 @@ class LCF_ATEPC(BertForTokenClassification):
                 cdw_context_out = torch.mul(local_context_out, cdw_vec)
                 cat_out = torch.cat((global_context_out, cdw_context_out, cdm_context_out), dim=-1)
                 cat_out = self.linear_triple(cat_out)
+                emotion_logits = self.emotion_classifier(cat_out)
             sa_out = self.SA2(cat_out)
+            emotion_logits = self.emotion_classifier(sa_out)
             pooled_out = self.pooler(sa_out)
         else:
             pooled_out = self.pooler(global_context_out)
@@ -219,3 +227,4 @@ class LCF_ATEPC(BertForTokenClassification):
             return total_loss
         else:
             return ate_logits, apc_logits, emotion_logits
+
