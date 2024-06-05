@@ -137,6 +137,7 @@ def main(config):
                     test_apc_logits_all = torch.cat((test_apc_logits_all, apc_logits), dim=0)
             if eval_emotion:
                 emotions = model.get_batch_emotions(emotions)
+                # emotion_logits = emotion_logits.view(emotions.shape)
                 n_e_test_correct += (torch.argmax(emotion_logits, -1) == emotions).sum().item()
                 n_e_test_total += len(emotions)
 
@@ -246,8 +247,9 @@ def main(config):
                 batch = tuple(t.to(device) for t in batch)
                 input_ids_spc, input_mask, segment_ids, label_ids, polarities, valid_ids, l_mask, emotions = batch
 
-                loss = torch.tensor(model(input_ids_spc, segment_ids, input_mask, label_ids, polarities,
-                                          valid_ids, l_mask, emotions), requires_grad=True)
+                loss_ate, loss_apc,loss_emo = model(input_ids_spc, segment_ids, input_mask, label_ids, polarities, valid_ids,
+                                           l_mask,emotions)
+                loss = loss_ate + loss_apc + loss_emo
                 loss.backward()
                 nb_tr_examples += input_ids_spc.size(0)
                 nb_tr_steps += 1
