@@ -184,15 +184,11 @@ def main(config):
             tmps = report.split()
             ate_result = round(float(tmps[7]) * 100, 2)
         if eval_emotion:
-            # emotion_acc = n_e_test_correct / n_e_test_total
-            # Flatten the tensors
-            test_emotion_pred_all_flat = torch.argmax(test_emotion_logits_all, -1).view(-1).cpu()
-            print(test_emotion_pred_all_flat)
-            test_emotions_all_flat = test_emotions_all.view(-1).cpu()
-            print(test_emotions_all_flat)
+            print(test_apc_logits_all)
+            print(test_emotions_all)
             # Compute the F1 score
-            emotion_f1 = f1_score(test_emotion_pred_all_flat, test_emotions_all_flat, labels=[0, 1, 2, 3, 4, 5], average='macro')
-            emotion_acc = accuracy_score(test_emotions_all_flat,test_emotion_pred_all_flat)
+            emotion_f1 = f1_score(test_emotions_all,torch.argmax(test_emotion_logits_all,-1).cpu(), labels=[0, 1, 2, 3, 4, 5], average='macro')
+            emotion_acc = accuracy_score(test_emotions_all,torch.argmax(test_emotion_logits_all,-1).cpu())
             emotion_acc = round(emotion_acc * 100, 2)
             emotion_f1 = round(emotion_f1 * 100, 2)
             emotion_result = {'max_emotion_test_acc': emotion_acc, 'max_emotion_test_f1': emotion_f1}
