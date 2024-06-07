@@ -6,7 +6,7 @@
     "use_bert_spc_for_apc": true,
     "SRD": 5,
     "learning_rate": 3e-4,
-    "dropout": 0.01,
+    "dropout": 0,
     "num_train_epochs": 1,
     "train_batch_size":6,
     "max_seq_length": 6,

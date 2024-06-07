@@ -279,7 +279,7 @@ def main(config):
                         logger.info(f'APC_test_acc: {current_apc_test_acc}(max: {max_apc_test_acc})  '
                                     f'APC_test_f1: {current_apc_test_f1}(max: {max_apc_test_f1})')
                         if args.use_bert_spc:
-                            logger.info(f'ATE_test_F1: {current_apc_test_f1}(max: {max_apc_test_f1})'
+                            logger.info(f'ATE_test_F1: {current_ate_test_f1}(max: {max_ate_test_f1})'
                                         f' (Unreliable since `use_bert_spc` is "True".)')
                         else:
                             logger.info(f'ATE_test_f1: {current_ate_test_f1}(max:{max_ate_test_f1})')
