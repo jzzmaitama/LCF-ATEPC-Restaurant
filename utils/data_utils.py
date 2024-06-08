@@ -72,10 +72,9 @@ def readfile(filename):
         sentence.append(splits[0])
         tag.append(splits[-3])
         polarity.append(int(splits[-2]))
-        emotion.append(splits[-1][:-1])
-
+        emotion.append(int(splits[-1][:-1]))
     if len(sentence) > 0:
-        data.append((sentence, tag, polarity, emotion))  # Modify this line
+        data.append((sentence, tag, polarity, emotion))
     return data
 
 
@@ -129,20 +128,22 @@ class ATEPCProcessor(DataProcessor):
             aspect = []
             aspect_tag = []
             aspect_polarity = [-1]
-            aspect_emotion = []
+            aspect_emotion = [-1]
             for w, t, p, e in zip(sentence, tag, polarity, emotion):
                 if p != -1:
                     aspect.append(w)
                     aspect_tag.append(t)
                     aspect_polarity.append(-1)
-                aspect_emotion.append(e)
+                if e != -1:
+                    aspect_emotion.append(-1)
             guid = "%s-%s" % (set_type, i)
             text_a = sentence
             text_b = aspect
             polarity.extend(aspect_polarity)
+            emotion.extend(aspect_emotion)
             examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, sentence_label=tag,
                                          aspect_label=aspect_tag, polarity=polarity,
-                                         emotion=aspect_emotion))
+                                         emotion=emotion))
         return examples
 
 
@@ -158,7 +159,7 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
         sentence_label = example.sentence_label
         aspect_label = example.aspect_label
         polaritiylist = example.polarity
-        emotionlist = example.emotion  # Add this line
+        emotionlist = example.emotion
         tokens = []
         labels = []
         polarities = []
@@ -168,11 +169,7 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
         text_spc_tokens.extend(['[SEP]'])
         text_spc_tokens.extend(aspect_tokens)
         enum_tokens = text_spc_tokens
-        diff = len(enum_tokens) - len(emotionlist)
-        if diff > 0:
-            emotionlist += emotionlist * (diff // len(emotionlist)) + emotionlist[:diff % len(emotionlist)]
         sentence_label.extend(['[SEP]'])
-        emotionlist = list(map(int, emotionlist))
         sentence_label.extend(aspect_label)
         label_lists = sentence_label
         for i, word in enumerate(enum_tokens):
@@ -185,7 +182,7 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
                 if m == 0:
                     labels.append(label_1)
                     polarities.append(polarity_1)
-                    emotions.append(emotion_1)  # Add this line
+                    emotions.append(emotion_1)
                     valid.append(1)
                     label_mask.append(1)
                 else:

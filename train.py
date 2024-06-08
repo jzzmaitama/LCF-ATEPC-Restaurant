@@ -243,8 +243,8 @@ def main(config):
                 batch = tuple(t.to(device) for t in batch)
                 input_ids_spc, input_mask, segment_ids, label_ids, polarities, valid_ids, l_mask, emotions = batch
 
-                loss_ate, loss_apc,loss_emo = model(input_ids_spc, segment_ids, input_mask, label_ids, polarities, valid_ids,
-                                           l_mask,emotions)
+                loss_ate, loss_apc,loss_emo = model(input_ids_spc, segment_ids, input_mask, label_ids, polarities,emotions,valid_ids,
+                                           l_mask)
                 loss = loss_ate + loss_apc + loss_emo
                 loss.backward()
                 nb_tr_examples += input_ids_spc.size(0)
