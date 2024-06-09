@@ -219,12 +219,14 @@ def main(config):
             apc_result = {'max_apc_test_acc': test_acc, 'max_apc_test_f1': test_f1}
 
         if eval_ATE:
+            print("y_true=",y_true)
+            print("y_pred=",y_pred)
             report = classification_report(y_true, y_pred, digits=4)
             tmps = report.split()
             ate_result = round(float(tmps[7]) * 100, 2)
         if eval_emotion:
-            print(torch.argmax(test_emotion_logits_all,-1).cpu())
-            print(test_emotions_all)
+            # print(torch.argmax(test_emotion_logits_all,-1).cpu())
+            # print(test_emotions_all)
             # Compute the F1 score
             emotion_f1 = f1_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(), labels=[0, 1, 2, 3, 4, 5], average='macro')
             emotion_acc = accuracy_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(),)
