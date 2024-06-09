@@ -1,6 +1,4 @@
-
-
-# -*- coding: utf-8 -*-
+ #-*- coding: utf-8 -*-
 # file: lcf_atepc.py
 
 from transformers.models.bert.modeling_bert import BertForTokenClassification, BertPooler, BertSelfAttention
@@ -82,16 +80,6 @@ class LCF_ATEPC(BertForTokenClassification):
             i += 1
         polarities = torch.from_numpy(polarities).long().to(self.args.device)
         return polarities
-
-    # def get_batch_emotions(self, b_emotions):
-    #     b_emotions = b_emotions.detach().cpu().numpy()
-    #     batch_size = b_emotions.shape[0]
-    #     max_seq_length = self.args.max_seq_length
-    #     emotions = np.zeros((batch_size, max_seq_length))
-    #     for i in range(batch_size):
-    #         emotions[i, :len(b_emotions[i])] = b_emotions[i]
-    #     emotions = torch.from_numpy(emotions).long().to(self.args.device)
-    #     return emotions
     def get_batch_emotions(self, b_emotions):
         b_emotions = b_emotions.detach().cpu().numpy()
         shape = b_emotions.shape
@@ -106,18 +94,7 @@ class LCF_ATEPC(BertForTokenClassification):
             i += 1
         emotions = torch.from_numpy(emotions).long().to(self.args.device)
         return emotions
-    # def get_batch_emotions(self, b_emotions):
-    #     b_emotions = b_emotions.detach().cpu().numpy()
-    #     shape = b_emotions.shape
-    #     emotions = np.zeros((shape[0], self.args.max_seq_length))
-    #     for i in range(shape[0]):
-    #         emotions_idx = np.flatnonzero(b_emotions[i] + 1)
-    #         try:
-    #             emotions[i, :len(emotions_idx)] = b_emotions[i, emotions_idx[0]]
-    #         except:
-    #             pass
-    #     emotions = torch.from_numpy(emotions).long().to(self.args.device)
-    #     return emotions
+
     def feature_dynamic_weighted(self, text_local_indices, polarities, emotions):
         text_ids = text_local_indices.detach().cpu().numpy()
         asp_ids = polarities.detach().cpu().numpy()
@@ -131,30 +108,34 @@ class LCF_ATEPC(BertForTokenClassification):
             e_ids = np.flatnonzero(emo_ids[emo_i] + 1)  # get non-zero emotion ids
             text_len = np.flatnonzero(text_ids[text_i])[-1] + 1
             asp_len = len(a_ids)
-            emo_len = len(e_ids)  # get length of non-zero emotion ids
+            emo_len = len(e_ids)
             try:
                 asp_begin = a_ids[0]
             except:
                 asp_begin = 0
             asp_avg_index = (asp_begin * 2 + asp_len) / 2
+
+            try:
+                emo_begin = e_ids[0]
+            except:
+                emo_begin = 0
+            emo_avg_index = (emo_begin * 2 + emo_len) / 2
+
             distances = np.zeros((text_len), dtype=np.float32)
             for i in range(len(distances)):
-                if abs(i - asp_avg_index) + asp_len / 2 > SRD:
+                if abs(i - asp_avg_index) + asp_len / 2 > SRD or abs(i - emo_avg_index) + emo_len / 2 > SRD:
                     distances[i] = 1 - (abs(i - asp_avg_index) + asp_len / 2 - SRD) / len(distances)
                 else:
                     distances[i] = 1
             for i in range(len(distances)):
                 weighted_text_raw_indices[text_i][i] = weighted_text_raw_indices[text_i][i] * distances[i]
-            # This is just a placeholder, replace it with actual logic calculation
-            for e_id in e_ids:
-                weighted_text_raw_indices[text_i][e_id] *= 0.5  # adjust the weights based on the emotion ids
         weighted_text_raw_indices = torch.from_numpy(weighted_text_raw_indices)
         return weighted_text_raw_indices.to(self.args.device)
 
     def feature_dynamic_mask(self, text_local_indices, polarities, emotions):
         text_ids = text_local_indices.detach().cpu().numpy()
         asp_ids = polarities.detach().cpu().numpy()
-        emo_ids = emotions.detach().cpu().numpy()  # get emotion ids
+        emo_ids = emotions.detach().cpu().numpy()
         SRD = self.args.SRD
 
         masked_text_raw_indices = np.ones((text_local_indices.size(0), text_local_indices.size(1), 768),
@@ -162,27 +143,29 @@ class LCF_ATEPC(BertForTokenClassification):
         for text_i, asp_i, emo_i in zip(range(len(text_ids)), range(len(asp_ids)),
                                         range(len(emo_ids))):  # include emo_i
             a_ids = np.flatnonzero(asp_ids[asp_i] + 1)
-            e_ids = np.flatnonzero(emo_ids[emo_i] + 1)  # get non-zero emotion ids
+            e_ids = np.flatnonzero(emo_ids[emo_i] + 1)
             try:
                 asp_begin = a_ids[0]
             except:
                 asp_begin = 0
             asp_len = len(a_ids)
-            if asp_begin >= SRD:
-                mask_begin = asp_begin - SRD
+
+            try:
+                emo_begin = e_ids[0]
+            except:
+                emo_begin = 0
+            emo_len = len(e_ids)
+
+            if asp_begin >= SRD or emo_begin >= SRD:
+                mask_begin = min(asp_begin, emo_begin) - SRD
             else:
                 mask_begin = 0
             # mask the text indices
             for i in range(mask_begin):
                 masked_text_raw_indices[text_i][i] = np.zeros(768, dtype=np.float64)
-            for j in range(asp_begin + asp_len + SRD - 1, self.args.max_seq_length):
+            for j in range(max(asp_begin + asp_len, emo_begin + emo_len) + SRD - 1, self.args.max_seq_length):
                 masked_text_raw_indices[text_i][j] = np.zeros(768, dtype=np.float64)
 
-            # This is just a placeholder, replace it with actual logic calculation
-            # use the emotions ids to adjust the masks
-            for e_id in e_ids:
-                masked_text_raw_indices[text_i][e_id] = np.ones(768,
-                                                                dtype=np.float64)
         masked_text_raw_indices = torch.from_numpy(masked_text_raw_indices)
         return masked_text_raw_indices.to(self.args.device)
 
@@ -211,8 +194,8 @@ class LCF_ATEPC(BertForTokenClassification):
         ate_logits = self.classifier(global_context_out)
 
         # Pool the global_context_out tensor before passing it to the emotion_classifier
-        pooled_global_context_out = self.pooler(global_context_out)
-        emotion_logits = self.emotion_classifier(pooled_global_context_out)
+        # pooled_global_context_out = self.pooler(global_context_out)
+        # emotion_logits = self.emotion_classifier(pooled_global_context_out)
 
         if self.args.local_context_focus is not None:
             local_context_ids = input_ids_spc  # Define local_context_ids here
@@ -255,11 +238,6 @@ class LCF_ATEPC(BertForTokenClassification):
             loss_ate = loss_fct(ate_logits.view(-1, self.num_labels), labels.view(-1))
             loss_apc = loss_sen(apc_logits, polarity_labels)
             loss_emo = loss_sen(emotion_logits, emotion_labels)
-
             return loss_ate, loss_apc,loss_emo
         else:
             return ate_logits, apc_logits, emotion_logits
-
-
-
-

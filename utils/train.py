@@ -1,30 +1,29 @@
 # -*- coding: utf-8 -*-
-# file: train.py
-# author: yangheng <yangheng@m.scnu.edu.cn>
-# Copyright (C) 2019. All Rights Reserved.
 
 import argparse
 import json
 import logging
 import os, sys
 import random
-from sklearn.metrics import f1_score
-from time import strftime, localtime
 
+from imblearn.under_sampling import RandomUnderSampler
+from sklearn.metrics import f1_score
+from sklearn.metrics import accuracy_score
+from imblearn.over_sampling import RandomOverSampler, SMOTE
+
+from time import strftime, localtime
+import torch.nn.functional as F
 import numpy as np
 import torch
-import torch.nn.functional as F
+from torch import device
 from transformers.optimization import AdamW
 from transformers.models.bert.modeling_bert import BertModel
 from transformers import BertTokenizer
-# from pytorch_transformers.optimization import AdamW
-# from pytorch_transformers.tokenization_bert import BertTokenizer
-# from pytorch_transformers.modeling_bert import BertModel
 from seqeval.metrics import classification_report
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler, TensorDataset)
 
 from utils.data_utils import ATEPCProcessor, convert_examples_to_features
-from output.lcf_atepc import LCF_ATEPC
+from model.lcf_atepc import LCF_ATEPC
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -35,6 +34,7 @@ time = '{}'.format(strftime("%y%m%d-%H%M%S", localtime()))
 log_file = 'logs/{}.log'.format(time)
 logger.addHandler(logging.FileHandler(log_file))
 logger.info('log file: {}'.format(log_file))
+
 
 def main(config):
     args = config
@@ -56,41 +56,8 @@ def main(config):
     label_list = processor.get_labels()
     num_labels = len(label_list) + 1
 
-    datasets = {
-        'camera': "atepc_datasets/camera",
-        'car': "atepc_datasets/car",
-        'phone': "atepc_datasets/phone",
-        'notebook': "atepc_datasets/notebook",
-        'laptop': "atepc_datasets/laptop",
-        'restaurant': "atepc_datasets/restaurant",
-        'twitter': "atepc_datasets/twitter",
-        'mixed': "atepc_datasets/mixed",
-    }
-    pretrained_bert_models = {
-        'camera': "bert-base-chinese",
-        'car': "bert-base-chinese",
-        'phone': "bert-base-chinese",
-        'notebook': "bert-base-chinese",
-        'laptop': "bert-base-uncased",
-        'restaurant': "bert-base-uncased",
-        # for loading domain-adapted BERT
-        # 'restaurant': "../bert_pretrained_restaurant",
-        'twitter': "bert-base-uncased",
-        'mixed': "bert-base-multilingual-uncased",
-    }
-
-    args.bert_model = pretrained_bert_models[args.dataset]
-    args.data_dir = datasets[args.dataset]
-
-    def convert_polarity(examples):
-        for i in range(len(examples)):
-            polarities = []
-            for polarity in examples[i].polarity:
-                if polarity == 2:
-                    polarities.append(1)
-                else:
-                    polarities.append(polarity)
-            examples[i].polarity = polarities
+    args.bert_model = "bert-base-uncased"
+    args.data_dir = "atepc_datasets/restaurant"
 
     tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case=True)
     train_examples = processor.get_train_examples(args.data_dir)
@@ -100,12 +67,7 @@ def main(config):
     bert_base_model = BertModel.from_pretrained(args.bert_model)
     bert_base_model.config.num_labels = num_labels
 
-    if args.dataset in {'camera', 'car', 'phone', 'notebook'}:
-        convert_polarity(train_examples)
-        convert_polarity(eval_examples)
-        model = LCF_ATEPC(bert_base_model, args=args)
-    else:
-        model = LCF_ATEPC(bert_base_model, args=args)
+    model = LCF_ATEPC(bert_base_model, args=args)
 
     for arg in vars(args):
         logger.info('>>> {0}: {1}'.format(arg, getattr(args, arg)))
@@ -129,37 +91,26 @@ def main(config):
     all_polarities = torch.tensor([f.polarities for f in eval_features], dtype=torch.long)
     all_valid_ids = torch.tensor([f.valid_ids for f in eval_features], dtype=torch.long)
     all_lmask_ids = torch.tensor([f.label_mask for f in eval_features], dtype=torch.long)
+    all_emotions = torch.tensor([f.emotions for f in eval_features], dtype=torch.long)
     eval_data = TensorDataset(all_spc_input_ids, all_input_mask, all_segment_ids, all_label_ids,
-                              all_polarities, all_valid_ids, all_lmask_ids)
+                              all_polarities, all_valid_ids, all_lmask_ids, all_emotions)  # Modify this line
     # Run prediction for full data
     eval_sampler = RandomSampler(eval_data)
     eval_dataloader = DataLoader(eval_data, sampler=eval_sampler, batch_size=args.eval_batch_size)
 
-    def evaluate(eval_ATE=True, eval_APC=True):
-        # evaluate
+    def evaluate(eval_ATE=True, eval_APC=True, eval_emotion=True):
         apc_result = {'max_apc_test_acc': 0, 'max_apc_test_f1': 0}
         ate_result = 0
+        emotion_result = {'max_emotion_test_acc': 0, 'max_emotion_test_f1': 0}
         y_true = []
         y_pred = []
         n_test_correct, n_test_total = 0, 0
+        n_e_test_correct,n_e_test_total = 0,0
         test_apc_logits_all, test_polarities_all = None, None
+        test_emotion_logits_all, test_emotions_all = None, None
         model.eval()
         label_map = {i: label for i, label in enumerate(label_list, 1)}
-        eval_features = convert_examples_to_features(eval_examples, label_list, args.max_seq_length, tokenizer)
-        all_spc_input_ids = torch.tensor([f.input_ids_spc for f in eval_features], dtype=torch.long)
-        all_input_mask = torch.tensor([f.input_mask for f in eval_features], dtype=torch.long)
-        all_segment_ids = torch.tensor([f.segment_ids for f in eval_features], dtype=torch.long)
-        all_label_ids = torch.tensor([f.label_id for f in eval_features], dtype=torch.long)
-        all_polarities = torch.tensor([f.polarities for f in eval_features], dtype=torch.long)
-        all_valid_ids = torch.tensor([f.valid_ids for f in eval_features], dtype=torch.long)
-        all_lmask_ids = torch.tensor([f.label_mask for f in eval_features], dtype=torch.long)
-        all_emotions = torch.tensor([f.emotions for f in eval_features], dtype=torch.long)  # Add this line
-        eval_data = TensorDataset(all_spc_input_ids, all_input_mask, all_segment_ids, all_label_ids,
-                                  all_polarities, all_valid_ids, all_lmask_ids, all_emotions)  # Add all_emotions here
-        # Run prediction for full data
-        eval_sampler = RandomSampler(eval_data)
-        eval_dataloader = DataLoader(eval_data, sampler=eval_sampler, batch_size=args.eval_batch_size)
-        for input_ids_spc, input_mask, segment_ids, label_ids, polarities, valid_ids, l_mask, emotions in eval_dataloader:  # Add emotions here
+        for input_ids_spc, input_mask, segment_ids, label_ids, polarities,emotions,valid_ids, l_mask in eval_dataloader:
             input_ids_spc = input_ids_spc.to(device)
             input_mask = input_mask.to(device)
             segment_ids = segment_ids.to(device)
@@ -167,11 +118,11 @@ def main(config):
             label_ids = label_ids.to(device)
             polarities = polarities.to(device)
             l_mask = l_mask.to(device)
-            emotions = emotions.to(device)  # Add this line
+            emotions = emotions.to(device)
 
             with torch.no_grad():
-                ate_logits, apc_logits = model(input_ids_spc, segment_ids, input_mask, label_ids, polarities, valid_ids,
-                                               l_mask, emotions)  # Add emotions here
+                ate_logits, apc_logits,emotion_logits = model(input_ids_spc, segment_ids, input_mask,
+                                               valid_ids=valid_ids, polarities=polarities, attention_mask_label=l_mask,emotions=emotions)
             if eval_APC:
                 polarities = model.get_batch_polarities(polarities)
                 n_test_correct += (torch.argmax(apc_logits, -1) == polarities).sum().item()
@@ -204,6 +155,19 @@ def main(config):
                         else:
                             temp_1.append(label_map.get(label_ids[i][j], 'O'))
                             temp_2.append(label_map.get(ate_logits[i][j], 'O'))
+
+            if eval_emotion:
+                emotions = model.get_batch_emotions(emotions)
+                n_e_test_correct += (torch.argmax(emotion_logits, -1) == emotions).sum().item()
+                n_e_test_total += len(emotions)
+
+                if test_emotions_all is None:
+                    test_emotions_all = emotions
+                    test_emotion_logits_all = emotion_logits
+                else:
+                    test_emotions_all = torch.cat((test_emotions_all, emotions), dim=0)
+                    test_emotion_logits_all = torch.cat((test_emotion_logits_all, emotion_logits), dim=0)
+
         if eval_APC:
             test_acc = n_test_correct / n_test_total
             if args.dataset in {'camera', 'car', 'phone', 'notebook'}:
@@ -216,12 +180,20 @@ def main(config):
             test_f1 = round(test_f1 * 100, 2)
             apc_result = {'max_apc_test_acc': test_acc, 'max_apc_test_f1': test_f1}
 
+        if eval_emotion:
+            print(torch.argmax(test_emotion_logits_all,-1).cpu())
+            print(test_emotions_all)
+            # Compute the F1 score
+            emotion_f1 = f1_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(), labels=[0, 1, 2, 3, 4, 5], average='macro')
+            emotion_acc = accuracy_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(),)
+            emotion_acc = round(emotion_acc * 100, 2)
+            emotion_f1 = round(emotion_f1 * 100, 2)
+            emotion_result = {'max_emotion_test_acc': emotion_acc, 'max_emotion_test_f1': emotion_f1}
         if eval_ATE:
             report = classification_report(y_true, y_pred, digits=4)
             tmps = report.split()
-            ate_result = round(float(tmps[7]) * 100, 2)
-        return apc_result, ate_result
-
+            ate_result = (float(tmps[7]) * 1000)
+        return apc_result, ate_result, emotion_result
     def save_model(path):
         # Save a trained model and the associated configuration,
         # Take care of the storage!
@@ -229,11 +201,11 @@ def main(config):
         model_to_save = model.module if hasattr(model, 'module') else model  # Only save the model it-self
         model_to_save.save_pretrained(path)
         tokenizer.save_pretrained(path)
-        label_map = {i : label for i, label in enumerate(label_list,1)}
-        model_config = {"bert_model":args.bert_model,"do_lower": True,"max_seq_length":args.max_seq_length,"num_labels":len(label_list)+1,"label_map":label_map}
-        json.dump(model_config,open(os.path.join(path,"config.json"),"w"))
+        label_map = {i: label for i, label in enumerate(label_list, 1)}
+        model_config = {"bert_model": args.bert_model, "do_lower": True, "max_seq_length": args.max_seq_length,
+                        "num_labels": len(label_list) + 1, "label_map": label_map}
+        json.dump(model_config, open(os.path.join(path, "config.json"), "w"))
         logger.info('save model to: {}'.format(path))
-
     def train():
         train_features = convert_examples_to_features(
             train_examples, label_list, args.max_seq_length, tokenizer)
@@ -248,16 +220,19 @@ def main(config):
         all_valid_ids = torch.tensor([f.valid_ids for f in train_features], dtype=torch.long)
         all_lmask_ids = torch.tensor([f.label_mask for f in train_features], dtype=torch.long)
         all_polarities = torch.tensor([f.polarities for f in train_features], dtype=torch.long)
-        all_emotions = torch.tensor([f.emotions for f in train_features], dtype=torch.long)  # Add this line
+        emotions = [f.emotions for f in train_features]
+        all_emotions = torch.tensor(emotions, dtype=torch.long)
+
         train_data = TensorDataset(all_spc_input_ids, all_input_mask, all_segment_ids,
                                    all_label_ids, all_polarities, all_valid_ids, all_lmask_ids,
-                                   all_emotions)  # Add all_emotions here
-
+                                   all_emotions)
         train_sampler = SequentialSampler(train_data)
         train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=args.train_batch_size)
         max_apc_test_acc = 0
         max_apc_test_f1 = 0
         max_ate_test_f1 = 0
+        max_emotion_test_acc = 0
+        max_emotion_test_f1 = 0
 
         global_step = 0
         for epoch in range(int(args.num_train_epochs)):
@@ -268,10 +243,15 @@ def main(config):
             for step, batch in enumerate(train_dataloader):
                 model.train()
                 batch = tuple(t.to(device) for t in batch)
-                input_ids_spc, input_mask, segment_ids, label_ids, polarities, valid_ids, l_mask, emotions = batch  # Add emotions here
-                loss_ate, loss_apc = model(input_ids_spc, segment_ids, input_mask, label_ids, polarities, valid_ids,
-                                           l_mask, emotions)  # Add emotions here
-                loss = loss_ate + loss_apc
+                # (self, input_ids_spc, attention_mask
+                #  = None, token_type_ids = None, labels = None, polarities = None, emotions = None,
+                #  valid_ids = None, attention_mask_label = None):
+                input_ids_spc, input_mask, segment_ids, label_ids, polarities,emotions, valid_ids, l_mask = batch
+                loss_ate, loss_apc, loss_emo = model(input_ids_spc,input_mask,segment_ids, label_ids, polarities,emotions,valid_ids,
+                                          l_mask)
+
+                # loss_ate, loss_apc,loss_emo = model(input_ids_spc, input_mask,segment_ids, label_ids, polarities,valid_ids,l_mask,emotions)
+                loss = loss_ate + loss_apc + loss_emo
                 loss.backward()
                 nb_tr_examples += input_ids_spc.size(0)
                 nb_tr_steps += 1
@@ -281,40 +261,62 @@ def main(config):
                 if global_step % args.eval_steps == 0:
                     if epoch >= args.num_train_epochs - 2 or args.num_train_epochs <= 2:
                         # evaluate in last 2 epochs
-                        apc_result, ate_result = evaluate(eval_ATE=not args.use_bert_spc)
+                        apc_result, ate_result, emotion_result = evaluate(eval_ATE=not args.use_bert_spc,
+                                                                          eval_emotion=True)
+                        print("apc_result",apc_result)
+                        print("ate_result",ate_result)
+                        print("emotion_result",emotion_result)
+
+
                         if apc_result['max_apc_test_acc'] > max_apc_test_acc:
                             max_apc_test_acc = apc_result['max_apc_test_acc']
                         if apc_result['max_apc_test_f1'] > max_apc_test_f1:
                             max_apc_test_f1 = apc_result['max_apc_test_f1']
                         if ate_result > max_ate_test_f1:
                             max_ate_test_f1 = ate_result
+                        if emotion_result['max_emotion_test_acc'] > max_emotion_test_acc:
+                            max_emotion_test_acc = emotion_result['max_emotion_test_acc']
+                        if emotion_result['max_emotion_test_f1'] > max_emotion_test_f1:
+                            max_emotion_test_f1 = emotion_result['max_emotion_test_f1']
 
                         current_apc_test_acc = apc_result['max_apc_test_acc']
                         current_apc_test_f1 = apc_result['max_apc_test_f1']
                         current_ate_test_f1 = round(ate_result, 2)
+                        current_emotion_test_acc = emotion_result['max_emotion_test_acc']
+                        current_emotion_test_f1 = emotion_result['max_emotion_test_f1']
 
                         logger.info('*' * 80)
                         logger.info('Train {} Epoch{}, Evaluate for {}'.format(args.seed, epoch + 1, args.data_dir))
                         logger.info(f'APC_test_acc: {current_apc_test_acc}(max: {max_apc_test_acc})  '
                                     f'APC_test_f1: {current_apc_test_f1}(max: {max_apc_test_f1})')
                         if args.use_bert_spc:
-                            logger.info(f'ATE_test_F1: {current_apc_test_f1}(max: {max_apc_test_f1})'
+                            logger.info(f'ATE_test_F1: {current_ate_test_f1}(max: {max_ate_test_f1})'
                                         f' (Unreliable since `use_bert_spc` is "True".)')
                         else:
                             logger.info(f'ATE_test_f1: {current_ate_test_f1}(max:{max_ate_test_f1})')
+                        logger.info(
+                            f'Emotion_test_acc: {current_emotion_test_acc}(max: {max_emotion_test_acc})'
+                            f' Emotion_test_f1: {current_emotion_test_f1}(max: {max_emotion_test_f1})')
                         logger.info('*' * 80)
-        return [max_apc_test_acc, max_apc_test_f1, max_ate_test_f1]
+        return [max_apc_test_acc, max_apc_test_f1, max_ate_test_f1, max_emotion_test_acc,
+                max_emotion_test_f1]
+
+    # output_dir = "model_output"
+    # save_model_path = os.path.join(output_dir, 'saved_model')
+    # save_model(save_model_path)
 
     return train()
+
+
 def parse_experiments(path):
     configs = []
+    opt = argparse.ArgumentParser()
     with open(path, "r", encoding='utf-8') as reader:
         json_config = json.loads(reader.read())
     for id, config in json_config.items():
         # Hyper Parameters
         parser = argparse.ArgumentParser()
-        parser.add_argument("--config_path", default='experiments.json', type=str,
-                            help='Path of experiments config file')
+        parser.add_argument("--dataset", default=config['dataset'], type=str)
         parser.add_argument("--output_dir", default=config['output_dir'], type=str)
         parser.add_argument("--SRD", default=int(config['SRD']), type=int)
         parser.add_argument("--learning_rate", default=float(config['learning_rate']), type=float,
@@ -332,39 +334,47 @@ def parse_experiments(path):
         parser.add_argument("--eval_steps", default=20, help="evaluate per steps")
         parser.add_argument('--gradient_accumulation_steps', type=int, default=1,
                             help="Number of updates steps to accumulate before performing a backward/update pass.")
+        parser.add_argument("--config_path", default='experiments.json', type=str,
+                            help='Path of experiments config file')
         configs.append(parser.parse_args())
     return configs
+
+
 if __name__ == "__main__":
-
     experiments = argparse.ArgumentParser()
-    experiments.add_argument('--config_path', default='experiments.json', type=str, help='Path of experiments config file')
+    experiments.add_argument('--config_path', default='experiments.json', type=str,
+                             help='Path of experiments config file')
     experiments = experiments.parse_args()
-
     # from utils.Pytorch_GPUManager import GPUManager
-
     # index = GPUManager().auto_choice()
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # device = torch.device("cuda:" + str(index) if torch.cuda.is_available() else "cpu")
+    #
+    device = torch.device("cpu")
     exp_configs = parse_experiments(experiments.config_path)
     n = 5
     for config in exp_configs:
-            logger.info('-'*80)
-            logger.info('Config {} (totally {} configs)'.format(exp_configs.index(config)+1,len(exp_configs)))
-            results = []
-            max_apc_test_acc, max_apc_test_f1, max_ate_test_f1 = 0,0,0
-            for i in range(n):
-                config.device = device
-                config.seed = i + 1
-                logger.info('No.{} training process of {}'.format(i + 1, n))
-                apc_test_acc, apc_test_f1, ate_test_f1 = main(config)
+        logger.info('-' * 80)
+        logger.info('Config {} (totally {} configs)'.format(exp_configs.index(config) + 1, len(exp_configs)))
+        results = []
+        max_apc_test_acc, max_apc_test_f1, max_ate_test_f1,max_emotion_test_acc,max_emotion_test_f1 = 0, 0, 0, 0, 0
+        for i in range(n):
+            config.device = device
+            config.seed = i + 1
+            logger.info('No.{} training process of {}'.format(i + 1, n))
+            # Assume that main(config) now returns emotion_test_acc and emotion_test_f1 as well
+            apc_test_acc, apc_test_f1, ate_test_f1, emotion_test_acc, emotion_test_f1 = main(config)
 
-                if apc_test_acc > max_apc_test_acc:
-                    max_apc_test_acc = apc_test_acc
-                if apc_test_f1 > max_apc_test_f1:
-                    max_apc_test_f1 = apc_test_f1
-                if ate_test_f1 > max_ate_test_f1:
-                    max_ate_test_f1 = ate_test_f1
-                logger.info('max_ate_test_f1:{} max_apc_test_acc: {}\tmax_apc_test_f1: {} \t'
-                            .format(max_ate_test_f1, max_apc_test_acc, max_apc_test_f1))
+            if apc_test_acc > max_apc_test_acc:
+                max_apc_test_acc = apc_test_acc
+            if apc_test_f1 > max_apc_test_f1:
+                max_apc_test_f1 = apc_test_f1
+            if ate_test_f1 > max_ate_test_f1:
+                max_ate_test_f1 = ate_test_f1
+            if emotion_test_acc > max_emotion_test_acc:
+                max_emotion_test_acc = emotion_test_acc
+            if emotion_test_f1 > max_emotion_test_f1:
+                max_emotion_test_f1 = emotion_test_f1
 
-
-
+            logger.info(
+                'max_ate_test_f1:{} max_apc_test_acc: {}\tmax_apc_test_f1: {} \tmax_emotion_test_acc: {}\tmax_emotion_test_f1: {}'
+                .format(max_ate_test_f1, max_apc_test_acc, max_apc_test_f1, max_emotion_test_acc, max_emotion_test_f1))
