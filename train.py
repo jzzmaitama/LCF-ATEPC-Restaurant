@@ -160,7 +160,7 @@ def main(config):
             emotions = emotions.to(device)
             l_mask = l_mask.to(device)
             with torch.no_grad():
-                ate_logits, apc_logits,emotion_logits = model(input_ids_spc,segment_ids,input_mask,polarities=polarities, emotions=emotions,valid_ids=valid_ids,attention_mask_label=l_mask)
+                ate_logits, apc_logits,emotion_logits = model(input_ids_spc,segment_ids,input_mask, valid_ids=valid_ids,polarities=polarities, emotions=emotions,attention_mask_label=l_mask)
             if eval_APC:
                 polarities = model.get_batch_polarities(polarities)
                 n_test_correct += (torch.argmax(apc_logits, -1) == polarities).sum().item()
