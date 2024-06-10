@@ -73,7 +73,6 @@ def main(config):
         'twitter': "bert-base-uncased",
         'mixed': "bert-base-multilingual-uncased",
     """
-
     datasets = {
         'restaurant': "atepc_datasets/restaurant",
     }
@@ -125,14 +124,14 @@ def main(config):
     eval_features = convert_examples_to_features(eval_examples, label_list, args.max_seq_length,
                                                  tokenizer)
     all_spc_input_ids = torch.tensor([f.input_ids_spc for f in eval_features], dtype=torch.long)
-    all_input_mask = torch.tensor([f.input_mask for f in eval_features], dtype=torch.long)
     all_segment_ids = torch.tensor([f.segment_ids for f in eval_features], dtype=torch.long)
+    all_input_mask = torch.tensor([f.input_mask for f in eval_features], dtype=torch.long)
     all_label_ids = torch.tensor([f.label_id for f in eval_features], dtype=torch.long)
     all_polarities = torch.tensor([f.polarities for f in eval_features], dtype=torch.long)
     all_valid_ids = torch.tensor([f.valid_ids for f in eval_features], dtype=torch.long)
     all_lmask_ids = torch.tensor([f.label_mask for f in eval_features], dtype=torch.long)
     all_emotions = torch.tensor([f.emotions for f in eval_features], dtype=torch.long)
-    eval_data = TensorDataset(all_spc_input_ids, all_input_mask, all_segment_ids, all_label_ids,
+    eval_data = TensorDataset(all_spc_input_ids, all_segment_ids, all_input_mask, all_label_ids,
                               all_polarities,all_emotions, all_valid_ids, all_lmask_ids)
     # Run prediction for full data
     eval_sampler = RandomSampler(eval_data)
@@ -160,7 +159,7 @@ def main(config):
             emotions = emotions.to(device)
             l_mask = l_mask.to(device)
             with torch.no_grad():
-                ate_logits, apc_logits,emotion_logits = model(input_ids_spc,segment_ids,input_mask, valid_ids=valid_ids,polarities=polarities, emotions=emotions,attention_mask_label=l_mask)
+                ate_logits, apc_logits,emotion_logits = model(input_ids_spc=input_ids_spc,token_type_ids=segment_ids,attention_mask=input_mask,polarities=polarities,emotions=emotions,valid_ids=valid_ids,attention_mask_label=l_mask)
             if eval_APC:
                 polarities = model.get_batch_polarities(polarities)
                 n_test_correct += (torch.argmax(apc_logits, -1) == polarities).sum().item()
@@ -213,7 +212,8 @@ def main(config):
                                    labels=[0, 1], average='macro')
             else:
                 test_f1 = f1_score(torch.argmax(test_apc_logits_all, -1).cpu(), test_polarities_all.cpu(),
-                                   labels=[0, 1, 2], average='macro')
+                                   labels=[0, 1, 2], average='macro',zero_division=0)
+
             test_acc = round(test_acc * 100, 2)
             test_f1 = round(test_f1 * 100, 2)
             apc_result = {'max_apc_test_acc': test_acc, 'max_apc_test_f1': test_f1}
@@ -254,15 +254,15 @@ def main(config):
         logger.info("  Batch size = %d", args.train_batch_size)
         logger.info("  Num steps = %d", num_train_optimization_steps)
         all_spc_input_ids = torch.tensor([f.input_ids_spc for f in train_features], dtype=torch.long)
-        all_input_mask = torch.tensor([f.input_mask for f in train_features], dtype=torch.long)
         all_segment_ids = torch.tensor([f.segment_ids for f in train_features], dtype=torch.long)
+        all_input_mask = torch.tensor([f.input_mask for f in train_features], dtype=torch.long)
         all_label_ids = torch.tensor([f.label_id for f in train_features], dtype=torch.long)
         all_valid_ids = torch.tensor([f.valid_ids for f in train_features], dtype=torch.long)
         all_lmask_ids = torch.tensor([f.label_mask for f in train_features], dtype=torch.long)
         all_polarities = torch.tensor([f.polarities for f in train_features], dtype=torch.long)
         all_emotions = torch.tensor([f.emotions for f in train_features], dtype=torch.long)
 
-        train_data = TensorDataset(all_spc_input_ids, all_input_mask, all_segment_ids,
+        train_data = TensorDataset(all_spc_input_ids, all_segment_ids, all_input_mask,
                                    all_label_ids, all_polarities,all_emotions, all_valid_ids, all_lmask_ids)
         train_sampler = SequentialSampler(train_data)
         train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=args.train_batch_size)
@@ -280,7 +280,7 @@ def main(config):
             for step, batch in enumerate(train_dataloader):
                 model.train()
                 batch = tuple(t.to(device) for t in batch)
-                input_ids_spc, input_mask, segment_ids, label_ids, polarities,emotions, valid_ids, l_mask = batch
+                input_ids_spc, segment_ids, input_mask, label_ids, polarities,emotions, valid_ids, l_mask = batch
                 loss_ate, loss_apc,loss_emo = model(input_ids_spc,segment_ids,input_mask, label_ids, polarities,emotions, valid_ids,
                                            l_mask)
                 loss = loss_ate + loss_apc + loss_emo
