@@ -43,7 +43,7 @@ class LCF_ATEPC(BertForTokenClassification):
         if args.dataset in {'camera', 'car', 'phone', 'notebook'}:
             self.dense = torch.nn.Linear(768, 2)
         else:
-            self.dense = torch.nn.Linear(768, 4)
+            self.dense = torch.nn.Linear(768, 3)
         self.bert_global_focus = self.bert_for_global_context
         self.dropout = nn.Dropout(self.args.dropout)
         self.SA1 = SelfAttention(config, args)
@@ -132,7 +132,6 @@ class LCF_ATEPC(BertForTokenClassification):
         asp_ids = polarities.detach().cpu().numpy()
         emo_ids = emotions.detach().cpu().numpy()
         SRD = self.args.SRD
-
         masked_text_raw_indices = np.ones((text_local_indices.size(0), text_local_indices.size(1), 768),
                                           dtype=np.float32)
         for text_i, asp_i, emo_i in zip(range(len(text_ids)), range(len(asp_ids)),
@@ -160,10 +159,8 @@ class LCF_ATEPC(BertForTokenClassification):
                 masked_text_raw_indices[text_i][i] = np.zeros(768, dtype=np.float64)
             for j in range(max(asp_begin + asp_len, emo_begin + emo_len) + SRD - 1, self.args.max_seq_length):
                 masked_text_raw_indices[text_i][j] = np.zeros(768, dtype=np.float64)
-
         masked_text_raw_indices = torch.from_numpy(masked_text_raw_indices)
         return masked_text_raw_indices.to(self.args.device)
-
     def get_ids_for_local_context_extractor(self, text_indices):
         text_ids = text_indices.detach().cpu().numpy()
         for text_i in range(len(text_ids)):
@@ -180,7 +177,6 @@ class LCF_ATEPC(BertForTokenClassification):
             'last_hidden_state']
         polarity_labels = self.get_batch_polarities(polarities)
         emotion_labels = self.get_batch_emotions(emotions)
-
         batch_size, max_len, feat_dim = global_context_out.shape
         global_valid_output = torch.zeros(batch_size, max_len, feat_dim, dtype=torch.float32).to(self.args.device)
         for i in range(batch_size):
@@ -192,11 +188,9 @@ class LCF_ATEPC(BertForTokenClassification):
         global_context_out = self.dropout(global_valid_output)
         ate_logits = self.classifier(global_context_out)
         # print(ate_logits)
-
         # Pool the global_context_out tensor before passing it to the emotion_classifier
         # pooled_global_context_out = self.pooler(global_context_out)
         # emotion_logits = self.emotion_classifier(pooled_global_context_out)
-
         if self.args.local_context_focus is not None:
             local_context_ids = input_ids_spc  # Define local_context_ids here
             local_context_out = self.bert_for_local_context(input_ids_spc, token_type_ids, attention_mask)[0]

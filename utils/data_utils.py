@@ -73,7 +73,7 @@ def readfile(filename):
         tag.append(splits[-3])
         polarity.append(int(splits[-2]))
         emotion.append(int(splits[-1][:-1]))
-    print(sentence)
+    # print(sentence)
     if len(sentence) > 0:
         data.append((sentence, tag, polarity, emotion))
     return data

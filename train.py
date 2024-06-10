@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # file: train.py
-# author: yangheng <yangheng@m.scnu.edu.cn>
 # Copyright (C) 2019. All Rights Reserved.
 
 import argparse
@@ -219,8 +218,8 @@ def main(config):
             apc_result = {'max_apc_test_acc': test_acc, 'max_apc_test_f1': test_f1}
 
         if eval_ATE:
-            print("y_true=",y_true)
-            print("y_pred=",y_pred)
+            # print("y_true=",y_true)
+            # print("y_pred=",y_pred)
             report = classification_report(y_true, y_pred, digits=4)
             tmps = report.split()
             ate_result = round(float(tmps[7]) * 100, 2)

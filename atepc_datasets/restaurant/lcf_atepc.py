@@ -130,6 +130,7 @@ class LCF_ATEPC(BertForTokenClassification):
             for i in range(len(distances)):
                 weighted_text_raw_indices[text_i][i] = weighted_text_raw_indices[text_i][i] * distances[i]
         weighted_text_raw_indices = torch.from_numpy(weighted_text_raw_indices)
+        print(weighted_text_raw_indices)
         return weighted_text_raw_indices.to(self.args.device)
 
     def feature_dynamic_mask(self, text_local_indices, polarities, emotions):
@@ -137,7 +138,6 @@ class LCF_ATEPC(BertForTokenClassification):
         asp_ids = polarities.detach().cpu().numpy()
         emo_ids = emotions.detach().cpu().numpy()
         SRD = self.args.SRD
-
         masked_text_raw_indices = np.ones((text_local_indices.size(0), text_local_indices.size(1), 768),
                                           dtype=np.float32)
         for text_i, asp_i, emo_i in zip(range(len(text_ids)), range(len(asp_ids)),
@@ -165,7 +165,6 @@ class LCF_ATEPC(BertForTokenClassification):
                 masked_text_raw_indices[text_i][i] = np.zeros(768, dtype=np.float64)
             for j in range(max(asp_begin + asp_len, emo_begin + emo_len) + SRD - 1, self.args.max_seq_length):
                 masked_text_raw_indices[text_i][j] = np.zeros(768, dtype=np.float64)
-
         masked_text_raw_indices = torch.from_numpy(masked_text_raw_indices)
         return masked_text_raw_indices.to(self.args.device)
 
