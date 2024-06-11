@@ -30,6 +30,9 @@ class LCF_ATEPC(BertForTokenClassification):
         config = bert_base_model.config
         self.bert_for_global_context = bert_base_model
         self.args = args
+        self.num_emotion_labels = 6
+
+        self.emotion_classifier = nn.Linear(config.hidden_size, 6)  # 6 for the number of emotions
         # do not init lcf layer if BERT-SPC or BERT-BASE specified
         # if self.args.local_context_focus in {'cdw', 'cdm', 'fusion'}:
         if not self.args.use_unique_bert:
@@ -37,24 +40,16 @@ class LCF_ATEPC(BertForTokenClassification):
         else:
             self.bert_for_local_context = self.bert_for_global_context
         self.pooler = BertPooler(config)
-        self.num_emotion_labels = 6
-        # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.dense = torch.nn.Linear(768, 3)  # For aspect categories
-        self.emotion_classifier = nn.Linear(config.hidden_size, 6)  # 6 for the number of emotions
+        if args.dataset in {'camera', 'car', 'phone', 'notebook'}:
+            self.dense = torch.nn.Linear(768, 2)
+        else:
+            self.dense = torch.nn.Linear(768, 3)
         self.bert_global_focus = self.bert_for_global_context
         self.dropout = nn.Dropout(self.args.dropout)
         self.SA1 = SelfAttention(config, args)
         self.SA2 = SelfAttention(config, args)
         self.linear_double = nn.Linear(768 * 2, 768)
         self.linear_triple = nn.Linear(768 * 3, 768)
-
-    @property
-    def device(self):
-        return self._device
-
-    @device.setter
-    def device(self, value):
-        self._device = value
 
     def get_batch_token_labels_bert_base_indices(self, labels):
         if labels is None:
@@ -72,7 +67,7 @@ class LCF_ATEPC(BertForTokenClassification):
         polarities = np.zeros((shape[0]))
         i = 0
         for polarity in b_polarities:
-            polarity_idx = np.flatnonzero(polarity + 1)
+            polarity_idx = np.flatnonzero(polarity+1)
             try:
                 polarities[i] = polarity[polarity_idx[0]]
             except:
@@ -130,7 +125,6 @@ class LCF_ATEPC(BertForTokenClassification):
             for i in range(len(distances)):
                 weighted_text_raw_indices[text_i][i] = weighted_text_raw_indices[text_i][i] * distances[i]
         weighted_text_raw_indices = torch.from_numpy(weighted_text_raw_indices)
-        print(weighted_text_raw_indices)
         return weighted_text_raw_indices.to(self.args.device)
 
     def feature_dynamic_mask(self, text_local_indices, polarities, emotions):
@@ -167,7 +161,6 @@ class LCF_ATEPC(BertForTokenClassification):
                 masked_text_raw_indices[text_i][j] = np.zeros(768, dtype=np.float64)
         masked_text_raw_indices = torch.from_numpy(masked_text_raw_indices)
         return masked_text_raw_indices.to(self.args.device)
-
     def get_ids_for_local_context_extractor(self, text_indices):
         text_ids = text_indices.detach().cpu().numpy()
         for text_i in range(len(text_ids)):
@@ -175,12 +168,15 @@ class LCF_ATEPC(BertForTokenClassification):
             text_ids[text_i][sep_index + 1:] = 0
         return torch.tensor(text_ids).to(self.args.device)
 
-    def forward(self, input_ids_spc, token_type_ids=None, attention_mask=None, labels=None, polarities=None,
-                valid_ids=None, attention_mask_label=None, emotions=None):
-        global_context_out = self.bert_for_global_context(input_ids_spc, token_type_ids, attention_mask)[0]
+    def forward(self, input_ids_spc,token_type_ids=None,attention_mask=None, labels=None, polarities=None,emotions=None,
+                valid_ids=None, attention_mask_label=None):
+        if not self.args.use_bert_spc:
+            input_ids_spc = self.get_ids_for_local_context_extractor(input_ids_spc)
+            labels = self.get_batch_token_labels_bert_base_indices(labels)
+        global_context_out = self.bert_for_global_context(input_ids_spc, token_type_ids, attention_mask)[
+            'last_hidden_state']
         polarity_labels = self.get_batch_polarities(polarities)
         emotion_labels = self.get_batch_emotions(emotions)
-
         batch_size, max_len, feat_dim = global_context_out.shape
         global_valid_output = torch.zeros(batch_size, max_len, feat_dim, dtype=torch.float32).to(self.args.device)
         for i in range(batch_size):
@@ -191,11 +187,10 @@ class LCF_ATEPC(BertForTokenClassification):
                     global_valid_output[i][jj] = global_context_out[i][j]
         global_context_out = self.dropout(global_valid_output)
         ate_logits = self.classifier(global_context_out)
-
+        # print(ate_logits)
         # Pool the global_context_out tensor before passing it to the emotion_classifier
         # pooled_global_context_out = self.pooler(global_context_out)
         # emotion_logits = self.emotion_classifier(pooled_global_context_out)
-
         if self.args.local_context_focus is not None:
             local_context_ids = input_ids_spc  # Define local_context_ids here
             local_context_out = self.bert_for_local_context(input_ids_spc, token_type_ids, attention_mask)[0]

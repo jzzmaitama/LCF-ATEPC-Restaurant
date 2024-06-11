@@ -43,7 +43,7 @@ class LCF_ATEPC(BertForTokenClassification):
         if args.dataset in {'camera', 'car', 'phone', 'notebook'}:
             self.dense = torch.nn.Linear(768, 2)
         else:
-            self.dense = torch.nn.Linear(768, 3)
+            self.dense = torch.nn.Linear(768, 4)
         self.bert_global_focus = self.bert_for_global_context
         self.dropout = nn.Dropout(self.args.dropout)
         self.SA1 = SelfAttention(config, args)
@@ -103,64 +103,59 @@ class LCF_ATEPC(BertForTokenClassification):
             e_ids = np.flatnonzero(emo_ids[emo_i] + 1)  # get non-zero emotion ids
             text_len = np.flatnonzero(text_ids[text_i])[-1] + 1
             asp_len = len(a_ids)
-            emo_len = len(e_ids)
+            emo_len = len(e_ids)  # get length of non-zero emotion ids
             try:
                 asp_begin = a_ids[0]
             except:
                 asp_begin = 0
             asp_avg_index = (asp_begin * 2 + asp_len) / 2
-
-            try:
-                emo_begin = e_ids[0]
-            except:
-                emo_begin = 0
-            emo_avg_index = (emo_begin * 2 + emo_len) / 2
-
             distances = np.zeros((text_len), dtype=np.float32)
             for i in range(len(distances)):
-                if abs(i - asp_avg_index) + asp_len / 2 > SRD or abs(i - emo_avg_index) + emo_len / 2 > SRD:
+                if abs(i - asp_avg_index) + asp_len / 2 > SRD:
                     distances[i] = 1 - (abs(i - asp_avg_index) + asp_len / 2 - SRD) / len(distances)
                 else:
                     distances[i] = 1
             for i in range(len(distances)):
                 weighted_text_raw_indices[text_i][i] = weighted_text_raw_indices[text_i][i] * distances[i]
+
+            for e_id in e_ids:
+                if emo_ids[emo_i][e_id] != -1:  # if the word has an emotion class
+                    weighted_text_raw_indices[text_i][e_id] *= 1.5  # adjust the weights based on the emotion ids
         weighted_text_raw_indices = torch.from_numpy(weighted_text_raw_indices)
         return weighted_text_raw_indices.to(self.args.device)
 
     def feature_dynamic_mask(self, text_local_indices, polarities, emotions):
         text_ids = text_local_indices.detach().cpu().numpy()
         asp_ids = polarities.detach().cpu().numpy()
-        emo_ids = emotions.detach().cpu().numpy()
+        emo_ids = emotions.detach().cpu().numpy()  # get emotion ids
         SRD = self.args.SRD
         masked_text_raw_indices = np.ones((text_local_indices.size(0), text_local_indices.size(1), 768),
                                           dtype=np.float32)
         for text_i, asp_i, emo_i in zip(range(len(text_ids)), range(len(asp_ids)),
                                         range(len(emo_ids))):  # include emo_i
             a_ids = np.flatnonzero(asp_ids[asp_i] + 1)
-            e_ids = np.flatnonzero(emo_ids[emo_i] + 1)
+            e_ids = np.flatnonzero(emo_ids[emo_i] + 1)  # get non-zero emotion ids
             try:
                 asp_begin = a_ids[0]
             except:
                 asp_begin = 0
             asp_len = len(a_ids)
-
-            try:
-                emo_begin = e_ids[0]
-            except:
-                emo_begin = 0
-            emo_len = len(e_ids)
-
-            if asp_begin >= SRD or emo_begin >= SRD:
-                mask_begin = min(asp_begin, emo_begin) - SRD
+            if asp_begin >= SRD:
+                mask_begin = asp_begin - SRD
             else:
                 mask_begin = 0
-            # mask the text indices
             for i in range(mask_begin):
                 masked_text_raw_indices[text_i][i] = np.zeros(768, dtype=np.float64)
-            for j in range(max(asp_begin + asp_len, emo_begin + emo_len) + SRD - 1, self.args.max_seq_length):
+            for j in range(asp_begin + asp_len + SRD - 1, self.args.max_seq_length):
                 masked_text_raw_indices[text_i][j] = np.zeros(768, dtype=np.float64)
+
+            for e_id in e_ids:
+                if emo_ids[emo_i][e_id] != -1:  # if the word has an emotion class
+                    masked_text_raw_indices[text_i][e_id] = np.ones(768,
+                                                                    dtype=np.float64)  # adjust the masks based on the emotion ids
         masked_text_raw_indices = torch.from_numpy(masked_text_raw_indices)
         return masked_text_raw_indices.to(self.args.device)
+
     def get_ids_for_local_context_extractor(self, text_indices):
         text_ids = text_indices.detach().cpu().numpy()
         for text_i in range(len(text_ids)):
