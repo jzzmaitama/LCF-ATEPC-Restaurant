@@ -150,7 +150,7 @@ class LCF_ATEPC(BertForTokenClassification):
             for j in range(asp_begin + asp_len + SRD - 1, self.args.max_seq_length):
                 masked_text_raw_indices[text_i][j] = np.zeros(768, dtype=np.float64)
 
-            print("check", emo_ids[emo_i][0])
+            # print("check", emo_ids[emo_i][0])
 
             for e_id in e_ids:
                 if emo_ids[emo_i][e_id] != -1:  # if the word has an emotion class
