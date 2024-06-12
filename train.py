@@ -282,7 +282,11 @@ def main(config):
                 input_ids_spc, segment_ids, input_mask, label_ids, polarities,emotions, valid_ids, l_mask = batch
                 loss_ate, loss_apc,loss_emo = model(input_ids_spc,segment_ids,input_mask, label_ids, polarities,emotions, valid_ids,
                                            l_mask)
-                loss = loss_ate + loss_apc + loss_emo
+                # loss = loss_ate + loss_apc + loss_emo
+                loss = loss_emo + loss_ate + loss_apc
+                # print("Emotion Loss: ",loss_emo)
+                # print("ATE loss: ",loss_ate)
+                # print("APC loss: ",loss_apc)
                 loss.backward()
                 nb_tr_examples += input_ids_spc.size(0)
                 nb_tr_steps += 1

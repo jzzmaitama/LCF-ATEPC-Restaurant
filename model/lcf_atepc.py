@@ -184,8 +184,8 @@ class LCF_ATEPC(BertForTokenClassification):
         ate_logits = self.classifier(global_context_out)
         # print(ate_logits)
         # Pool the global_context_out tensor before passing it to the emotion_classifier
-        # pooled_global_context_out = self.pooler(global_context_out)
-        # emotion_logits = self.emotion_classifier(pooled_global_context_out)
+        pooled_global_context_out = self.pooler(global_context_out)
+        emotion_logits = self.emotion_classifier(pooled_global_context_out)
         if self.args.local_context_focus is not None:
             local_context_ids = input_ids_spc  # Define local_context_ids here
             local_context_out = self.bert_for_local_context(input_ids_spc, token_type_ids, attention_mask)[0]
@@ -212,6 +212,9 @@ class LCF_ATEPC(BertForTokenClassification):
                 cdw_context_out = torch.mul(local_context_out, cdw_vec)
                 cat_out = torch.cat((global_context_out, cdw_context_out, cdm_context_out), dim=-1)
                 cat_out = self.linear_triple(cat_out)
+                sa_out = self.SA2(cat_out)
+                pooled_out = self.pooler(sa_out)
+                emotion_logits = self.emotion_classifier(pooled_out)
 
             sa_out = self.SA2(cat_out)
             pooled_out = self.pooler(sa_out)
@@ -219,7 +222,7 @@ class LCF_ATEPC(BertForTokenClassification):
             pooled_out = self.pooler(global_context_out)
         pooled_out = self.dropout(pooled_out)
         apc_logits = self.dense(pooled_out)
-        emotion_logits = self.emotion_classifier(pooled_out)
+        # emotion_logits = self.emotion_classifier(pooled_out)
 
         if labels is not None:
             loss_fct = CrossEntropyLoss(ignore_index=0)
