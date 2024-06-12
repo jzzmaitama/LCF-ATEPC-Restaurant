@@ -94,6 +94,7 @@ def main(config):
 
     tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case=True)
     train_examples = processor.get_train_examples(args.data_dir)
+    print('check',train_examples[0].text_a)
     eval_examples = processor.get_test_examples(args.data_dir)
     num_train_optimization_steps = int(
         len(train_examples) / args.train_batch_size / args.gradient_accumulation_steps) * args.num_train_epochs
