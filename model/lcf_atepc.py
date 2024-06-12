@@ -1,4 +1,4 @@
- #-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # file: lcf_atepc.py
 
 from transformers.models.bert.modeling_bert import BertForTokenClassification, BertPooler, BertSelfAttention
@@ -67,7 +67,7 @@ class LCF_ATEPC(BertForTokenClassification):
         polarities = np.zeros((shape[0]))
         i = 0
         for polarity in b_polarities:
-            polarity_idx = np.flatnonzero(polarity+1)
+            polarity_idx = np.flatnonzero(polarity + 1)
             try:
                 polarities[i] = polarity[polarity_idx[0]]
             except:
@@ -75,6 +75,7 @@ class LCF_ATEPC(BertForTokenClassification):
             i += 1
         polarities = torch.from_numpy(polarities).long().to(self.args.device)
         return polarities
+
     def get_batch_emotions(self, b_emotions):
         b_emotions = b_emotions.detach().cpu().numpy()
         shape = b_emotions.shape
@@ -149,10 +150,12 @@ class LCF_ATEPC(BertForTokenClassification):
             for j in range(asp_begin + asp_len + SRD - 1, self.args.max_seq_length):
                 masked_text_raw_indices[text_i][j] = np.zeros(768, dtype=np.float64)
 
+            print("check", emo_ids[emo_i][0])
+
             for e_id in e_ids:
                 if emo_ids[emo_i][e_id] != -1:  # if the word has an emotion class
                     masked_text_raw_indices[text_i][e_id] = np.ones(768,
-                                                                    dtype=np.float64)  # adjust the masks based on the emotion ids
+                                                                    dtype=np.float64)
         masked_text_raw_indices = torch.from_numpy(masked_text_raw_indices)
         return masked_text_raw_indices.to(self.args.device)
 
@@ -163,7 +166,8 @@ class LCF_ATEPC(BertForTokenClassification):
             text_ids[text_i][sep_index + 1:] = 0
         return torch.tensor(text_ids).to(self.args.device)
 
-    def forward(self, input_ids_spc,token_type_ids=None,attention_mask=None, labels=None, polarities=None,emotions=None,
+    def forward(self, input_ids_spc, token_type_ids=None, attention_mask=None, labels=None, polarities=None,
+                emotions=None,
                 valid_ids=None, attention_mask_label=None):
         if not self.args.use_bert_spc:
             input_ids_spc = self.get_ids_for_local_context_extractor(input_ids_spc)
@@ -230,6 +234,6 @@ class LCF_ATEPC(BertForTokenClassification):
             loss_ate = loss_fct(ate_logits.view(-1, self.num_labels), labels.view(-1))
             loss_apc = loss_sen(apc_logits, polarity_labels)
             loss_emo = loss_sen(emotion_logits, emotion_labels)
-            return loss_ate, loss_apc,loss_emo
+            return loss_ate, loss_apc, loss_emo
         else:
             return ate_logits, apc_logits, emotion_logits
