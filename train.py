@@ -174,7 +174,7 @@ def main(config):
             valid_ids = valid_ids.to(device)
             label_ids = label_ids.to(device)
             polarities = polarities.to(device)
-            emotions = emotions.to(device)
+            # emotions = emotions.to(device)
             l_mask = l_mask.to(device)
             with torch.no_grad():
                 ate_logits, apc_logits = model(input_ids_spc=input_ids_spc,token_type_ids=segment_ids,attention_mask=input_mask,polarities=polarities,valid_ids=valid_ids,attention_mask_label=l_mask)
@@ -324,7 +324,7 @@ def main(config):
                 if global_step % args.eval_steps == 0:
                     if epoch >= args.num_train_epochs - 2 or args.num_train_epochs <= 2:
                         # evaluate in last 2 epochs
-                        apc_result, ate_result,emotion_result = evaluate(eval_ATE=not args.use_bert_spc)
+                        apc_result, ate_result = evaluate(eval_ATE=not args.use_bert_spc)
 
                         # apc_result, ate_result = evaluate()
                         # path = '{0}/{1}_{2}_apcacc_{3}_apcf1_{4}_atef1_{5}'.format(

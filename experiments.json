@@ -9,7 +9,7 @@
     "dropout": 0.1,
     "num_train_epochs": 1,
     "train_batch_size": 6,
-    "max_seq_length": 25,
+    "max_seq_length": 5,
     "local_context_focus": "fusion"
   }
 }
