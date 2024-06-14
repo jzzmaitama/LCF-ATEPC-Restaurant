@@ -257,6 +257,7 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
         # label_ids = np.array(label_ids)
         # labels = np.array(labels)
         # valid = np.array(valid)
+        # emotions = emotions,
 
         features.append(
             InputFeatures(input_ids_spc=input_ids_spc,
@@ -264,7 +265,6 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
                           segment_ids=segment_ids,
                           label_id=label_ids,
                           polarities=polarities,
-                          emotions=emotions,
                           valid_ids=valid,
                           label_mask=label_mask))
         # print("input_ids_spc",features[-1].input_ids_spc)
