@@ -140,9 +140,9 @@ def main(config):
     all_polarities = torch.tensor([f.polarities for f in eval_features], dtype=torch.long)
     all_valid_ids = torch.tensor([f.valid_ids for f in eval_features], dtype=torch.long)
     all_lmask_ids = torch.tensor([f.label_mask for f in eval_features], dtype=torch.long)
-    # all_emotions = torch.tensor([f.emotions for f in eval_features], dtype=torch.long)
+    all_emotions = torch.tensor([f.emotions for f in eval_features], dtype=torch.long)
     eval_data = TensorDataset(all_spc_input_ids, all_segment_ids, all_input_mask, all_label_ids,
-                              all_polarities, all_valid_ids, all_lmask_ids)
+                              all_polarities,all_emotions, all_valid_ids, all_lmask_ids)
     # print("check0", label_list)
     # print('check', eval_features[0].input_ids_spc)
     # print('check1', eval_features[0].segment_ids)
@@ -167,17 +167,17 @@ def main(config):
         test_emotion_logits_all, test_emotions_all = None, None
         model.eval()
         label_map = {i: label for i, label in enumerate(label_list, 1)}
-        for input_ids_spc, input_mask, segment_ids, label_ids, polarities, valid_ids, l_mask in eval_dataloader:
+        for input_ids_spc, input_mask, segment_ids, label_ids, polarities,emotions, valid_ids, l_mask in eval_dataloader:
             input_ids_spc = input_ids_spc.to(device)
             input_mask = input_mask.to(device)
             segment_ids = segment_ids.to(device)
             valid_ids = valid_ids.to(device)
             label_ids = label_ids.to(device)
             polarities = polarities.to(device)
-            # emotions = emotions.to(device)
+            emotions = emotions.to(device)
             l_mask = l_mask.to(device)
             with torch.no_grad():
-                ate_logits, apc_logits = model(input_ids_spc=input_ids_spc,token_type_ids=segment_ids,attention_mask=input_mask,polarities=polarities,valid_ids=valid_ids,attention_mask_label=l_mask)
+                ate_logits, apc_logits,emotion_logits = model(input_ids_spc=input_ids_spc,token_type_ids=segment_ids,attention_mask=input_mask,polarities=polarities,emotions=emotions,valid_ids=valid_ids,attention_mask_label=l_mask)
             if eval_APC:
                 polarities = model.get_batch_polarities(polarities)
                 n_test_correct += (torch.argmax(apc_logits, -1) == polarities).sum().item()
@@ -211,17 +211,17 @@ def main(config):
                             temp_1.append(label_map.get(label_ids[i][j], 'O'))
                             temp_2.append(label_map.get(ate_logits[i][j], 'O'))
 
-            # if eval_emotion:
-            #     emotions = model.get_batch_emotions(emotions)
-            #     n_e_test_correct += (torch.argmax(emotion_logits, -1) == emotions).sum().item()
-            #     n_e_test_total += len(emotions)
-            #
-            #     if test_emotions_all is None:
-            #         test_emotions_all = emotions
-            #         test_emotion_logits_all = emotion_logits
-            #     else:
-            #         test_emotions_all = torch.cat((test_emotions_all, emotions), dim=0)
-            #         test_emotion_logits_all = torch.cat((test_emotion_logits_all, emotion_logits), dim=0)
+            if eval_emotion:
+                emotions = model.get_batch_emotions(emotions)
+                n_e_test_correct += (torch.argmax(emotion_logits, -1) == emotions).sum().item()
+                n_e_test_total += len(emotions)
+
+                if test_emotions_all is None:
+                    test_emotions_all = emotions
+                    test_emotion_logits_all = emotion_logits
+                else:
+                    test_emotions_all = torch.cat((test_emotions_all, emotions), dim=0)
+                    test_emotion_logits_all = torch.cat((test_emotion_logits_all, emotion_logits), dim=0)
 
         if eval_APC:
             test_acc = n_test_correct / n_test_total
@@ -242,16 +242,16 @@ def main(config):
             report = classification_report(y_true, y_pred, digits=4)
             tmps = report.split()
             ate_result = round(float(tmps[7]) * 100, 2)
-        # if eval_emotion:
-        #     # print(torch.argmax(test_emotion_logits_all,-1).cpu())
-        #     # print(test_emotions_all)
-        #     # Compute the F1 score
-        #     emotion_f1 = f1_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(), labels=[0, 1, 2, 3, 4, 5], average='macro')
-        #     emotion_acc = accuracy_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(),)
-        #     emotion_acc = round(float(emotion_acc) * 100, 2)
-        #     emotion_f1 = round(float(emotion_f1) * 100, 2)
-        #     emotion_result = {'max_emotion_test_acc': emotion_acc, 'max_emotion_test_f1': emotion_f1}
-        return apc_result, ate_result
+        if eval_emotion:
+            # print(torch.argmax(test_emotion_logits_all,-1).cpu())
+            # print(test_emotions_all)
+            # Compute the F1 score
+            emotion_f1 = f1_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(), labels=[0, 1, 2, 3, 4, 5], average='macro')
+            emotion_acc = accuracy_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(),)
+            emotion_acc = round(float(emotion_acc) * 100, 2)
+            emotion_f1 = round(float(emotion_f1) * 100, 2)
+            emotion_result = {'max_emotion_test_acc': emotion_acc, 'max_emotion_test_f1': emotion_f1}
+        return apc_result, ate_result,emotion_result
     def save_model(path):
         # Save a trained model and the associated configuration,
         # Take care of the storage!
@@ -287,10 +287,10 @@ def main(config):
         all_valid_ids = torch.tensor([f.valid_ids for f in train_features], dtype=torch.long)
         all_lmask_ids = torch.tensor([f.label_mask for f in train_features], dtype=torch.long)
         all_polarities = torch.tensor([f.polarities for f in train_features], dtype=torch.long)
-        # all_emotions = torch.tensor([f.emotions for f in train_features], dtype=torch.long)
+        all_emotions = torch.tensor([f.emotions for f in train_features], dtype=torch.long)
 
         train_data = TensorDataset(all_spc_input_ids, all_segment_ids, all_input_mask,
-                                   all_label_ids, all_polarities, all_valid_ids, all_lmask_ids)
+                                   all_label_ids, all_polarities,all_emotions, all_valid_ids, all_lmask_ids)
         train_sampler = SequentialSampler(train_data)
         train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=args.train_batch_size)
         max_apc_test_acc = 0
@@ -307,25 +307,25 @@ def main(config):
             for step, batch in enumerate(train_dataloader):
                 model.train()
                 batch = tuple(t.to(device) for t in batch)
-                input_ids_spc, segment_ids, input_mask, label_ids, polarities, valid_ids, l_mask = batch
-                loss_ate, loss_apc = model(input_ids_spc,segment_ids,input_mask, label_ids, polarities, valid_ids,
+                input_ids_spc, segment_ids, input_mask, label_ids, polarities,emotions, valid_ids, l_mask = batch
+                loss_ate, loss_apc,loss_emo = model(input_ids_spc,segment_ids,input_mask, label_ids, polarities,emotions, valid_ids,
                                            l_mask)
-                # loss = loss_ate + loss_apc + loss_emo
-                loss = loss_ate + loss_apc
-                # print("Emotion Loss: ",loss_emo)
-                # print("ATE loss: ",loss_ate)
-                # print("APC loss: ",loss_apc)
+                # Define the weights
+                weight_emo = 0.1
+                weight_ate = 1.0
+                weight_apc = 1.0
+
+                # Calculate the weighted loss
+                loss = weight_ate * loss_ate + weight_apc * loss_apc + weight_emo * loss_emo
                 loss.backward()
                 nb_tr_examples += input_ids_spc.size(0)
                 nb_tr_steps += 1
                 optimizer.step()
                 optimizer.zero_grad()
-                global_step += 1
                 if global_step % args.eval_steps == 0:
                     if epoch >= args.num_train_epochs - 2 or args.num_train_epochs <= 2:
                         # evaluate in last 2 epochs
-                        apc_result, ate_result = evaluate(eval_ATE=not args.use_bert_spc)
-
+                        apc_result, ate_result,emotion_result = evaluate(eval_ATE=not args.use_bert_spc)
                         # apc_result, ate_result = evaluate()
                         # path = '{0}/{1}_{2}_apcacc_{3}_apcf1_{4}_atef1_{5}'.format(
                         #     args.output_dir,
@@ -346,16 +346,16 @@ def main(config):
                             max_apc_test_f1 = apc_result['max_apc_test_f1']
                         if ate_result > max_ate_test_f1:
                             max_ate_test_f1 = ate_result
-                        # if emotion_result['max_emotion_test_acc'] > max_emotion_test_acc:
-                        #     max_emotion_test_acc = emotion_result['max_emotion_test_acc']
-                        # if emotion_result['max_emotion_test_f1'] > max_emotion_test_f1:
-                        #     max_emotion_test_f1 = emotion_result['max_emotion_test_f1']
+                        if emotion_result['max_emotion_test_acc'] > max_emotion_test_acc:
+                            max_emotion_test_acc = emotion_result['max_emotion_test_acc']
+                        if emotion_result['max_emotion_test_f1'] > max_emotion_test_f1:
+                            max_emotion_test_f1 = emotion_result['max_emotion_test_f1']
 
                         current_apc_test_acc = apc_result['max_apc_test_acc']
                         current_apc_test_f1 = apc_result['max_apc_test_f1']
                         current_ate_test_f1 = round(ate_result, 2)
-                        # current_emotion_test_acc = emotion_result['max_emotion_test_acc']
-                        # current_emotion_test_f1 = emotion_result['max_emotion_test_f1']
+                        current_emotion_test_acc = emotion_result['max_emotion_test_acc']
+                        current_emotion_test_f1 = emotion_result['max_emotion_test_f1']
 
                         logger.info('*' * 80)
                         logger.info('Train {} Epoch{}, Evaluate for {}'.format(args.seed, epoch + 1, args.data_dir))
@@ -366,12 +366,12 @@ def main(config):
                                         f' (Unreliable since `use_bert_spc` is "True".)')
                         else:
                             logger.info(f'ATE_test_f1: {current_ate_test_f1}(max:{max_ate_test_f1})')
-                        # logger.info(
-                        #     f'Emotion_test_acc: {current_emotion_test_acc}(max: {max_emotion_test_acc})'
-                        #     f' Emotion_test_f1: {current_emotion_test_f1}(max: {max_emotion_test_f1})')
+                        logger.info(
+                            f'Emotion_test_acc: {current_emotion_test_acc}(max: {max_emotion_test_acc})'
+                            f' Emotion_test_f1: {current_emotion_test_f1}(max: {max_emotion_test_f1})')
                         logger.info('*' * 80)
 
-        return [max_apc_test_acc, max_apc_test_f1, max_ate_test_f1]
+        return [max_apc_test_acc, max_apc_test_f1, max_ate_test_f1,max_emotion_test_acc,max_emotion_test_f1]
 
     return train()
 
@@ -426,7 +426,7 @@ if __name__ == "__main__":
             config.seed = i + 1
             logger.info('No.{} training process of {}'.format(i + 1, n))
             # Assume that main(config) now returns emotion_test_acc and emotion_test_f1 as well
-            apc_test_acc, apc_test_f1, ate_test_f1 = main(config)
+            apc_test_acc, apc_test_f1, ate_test_f1, emotion_test_acc, emotion_test_f1 = main(config)
 
             if apc_test_acc > max_apc_test_acc:
                 max_apc_test_acc = apc_test_acc
@@ -434,10 +434,11 @@ if __name__ == "__main__":
                 max_apc_test_f1 = apc_test_f1
             if ate_test_f1 > max_ate_test_f1:
                 max_ate_test_f1 = ate_test_f1
-            # if emotion_test_acc > max_emotion_test_acc:
-            #     max_emotion_test_acc = emotion_test_acc
-            # if emotion_test_f1 > max_emotion_test_f1:
-            #     max_emotion_test_f1 = emotion_test_f1
-            #     max_emotion_test_f1 = emotion_test_f1
-            logger.info('max_ate_test_f1:{} max_apc_test_acc: {}\tmax_apc_test_f1: {} \t'
-                        .format(max_ate_test_f1, max_apc_test_acc, max_apc_test_f1))
+            if emotion_test_acc > max_emotion_test_acc:
+                max_emotion_test_acc = emotion_test_acc
+            if emotion_test_f1 > max_emotion_test_f1:
+                max_emotion_test_f1 = emotion_test_f1
+
+            logger.info(
+                'max_ate_test_f1:{} max_apc_test_acc: {}\tmax_apc_test_f1: {} \tmax_emotion_test_acc: {}\tmax_emotion_test_f1: {}'
+                .format(max_ate_test_f1, max_apc_test_acc, max_apc_test_f1, max_emotion_test_acc, max_emotion_test_f1))
