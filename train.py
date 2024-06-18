@@ -311,12 +311,12 @@ def main(config):
                 loss_ate, loss_apc,loss_emo = model(input_ids_spc,segment_ids,input_mask, label_ids, polarities,emotions, valid_ids,
                                            l_mask)
                 # Define the weights
-                weight_emo = 0.1
+                weight_emo = 6.1
                 weight_ate = 1.0
                 weight_apc = 1.0
 
                 # Calculate the weighted loss
-                loss = weight_ate * loss_ate + weight_apc * loss_apc + weight_emo * loss_emo
+                loss =  loss_ate + loss_apc + loss_emo
                 loss.backward()
                 nb_tr_examples += input_ids_spc.size(0)
                 nb_tr_steps += 1

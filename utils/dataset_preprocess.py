@@ -80,7 +80,6 @@ def split_aspects(sentence):
     return single_aspect_with_contex
 
 
-# 将数据集中的aspect切割出来
 def refactor_dataset(fname, dist_fname):
     lines = []
     samples = assemble_aspects(fname)
@@ -91,59 +90,11 @@ def refactor_dataset(fname, dist_fname):
             lines.append(token + " " + label + " " + str(polarty))
 
         lines.append('\n')
-    # 写之前，先检验文件是否存在，存在就删掉
     if os.path.exists(dist_fname):
         os.remove(dist_fname)
     fout = open(dist_fname, 'w', encoding='utf8')
     for line in lines:
         fout.writelines((line+'\n').replace('\n\n', '\n'))
-    fout.close()
-
-# 将数据集中的aspect切割出来
-def refactor_chinese_dataset(fname, train_fname,test_fname):
-    lines = []
-    samples = assemble_aspects(fname)
-    positive = 0
-    negative = 0
-    sum = 0
-    # refactor testset
-    for sample in samples[:int(len(samples)/5)]:
-        for token_index in range(len(sample[1])):
-            token, label, polarty = sample[0].split()[token_index], sample[1][token_index], sample[2][token_index]
-            lines.append(token + " " + label + " " + str(polarty))
-        lines.append('\n')
-        if 1 in sample[2]:
-            positive+=1
-        else:negative+=1
-        sum+=1
-    print(train_fname+f"sum={sum} positive={positive} negative={negative}")
-    if os.path.exists(test_fname):
-        os.remove(test_fname)
-    fout = open(test_fname, 'w', encoding='utf8')
-    for line in lines:
-        fout.writelines((line+'\n').replace('\n\n', '\n'))
-    fout.close()
-
-    positive = 0
-    negative = 0
-    sum = 0
-    # refactor trainset
-    for sample in samples[int(len(samples)/5):]:
-        for token_index in range(len(sample[1])):
-            tokens = sample[0].split()
-            token, label, polarty = sample[0].split()[token_index], sample[1][token_index], sample[2][token_index]
-            lines.append(token + " " + label + " " + str(polarty))
-        lines.append('\n')
-        if 1 in sample[2]:
-            positive+=1
-        else:negative+=1
-        sum+=1
-    print(train_fname+f"sum={sum} positive={positive} negative={negative}")
-    if os.path.exists(train_fname):
-        os.remove(train_fname)
-    fout = open(train_fname, 'w', encoding='utf8')
-    for line in lines:
-        fout.writelines((line + '\n').replace('\n\n', '\n'))
     fout.close()
 
 def detect_error_in_dataset(dataset):
@@ -156,61 +107,12 @@ def detect_error_in_dataset(dataset):
                 print(lines[i].replace('$T$', lines[i+1].replace('\n','')))
                 print(lines[i+3].replace('$T$', lines[i+4].replace('\n','')))
 
-
 if __name__ == "__main__":
-
-    # # chinese datasets
-    # refactor_chinese_dataset(
-    #     r"chinese_atepc_dataset/camera_output.txt",
-    #     r"chinese_atepc_datasets/camera.atepc.train.dat",
-    #     r"chinese_atepc_datasets/camera.atepc.test.dat",
-    # )
-    # refactor_chinese_dataset(
-    #     r"chinese_atepc_datasets/car_output.txt",
-    #     r"chinese_atepc_datasets/car.atepc.train.dat",
-    #     r"chinese_atepc_datasets/car.atepc.test.dat",
-    # )
-    # refactor_chinese_dataset(
-    #     r"chinese_atepc_datasets/notebook_output.txt",
-    #     r"chinese_atepc_datasets/notebook.atepc.train.dat",
-    #     r"chinese_atepc_datasets/notebook.atepc.test.dat",
-    # )
-    # refactor_chinese_dataset(
-    #     r"chinese_atepc_datasets/phone_output.txt",
-    #     r"chinese_atepc_datasets/phone.atepc.train.dat",
-    #     r"chinese_atepc_datasets/phone.atepc.test.dat",
-    # )
-
-    # detect_error_in_dataset( r"../datasets/semeval14/Laptops_Train.xml.seg")
-    # detect_error_in_dataset( r"../datasets/semeval14/Laptops_Test_Gold.xml.seg")
-    # detect_error_in_dataset( r"../datasets/semeval14/Restaurants_Train.xml.seg")
-    # detect_error_in_dataset( r"../datasets/semeval14/Restaurants_Test_Gold.xml.seg")
-    # detect_error_in_dataset( r"../datasets/acl-14-short-data/train.raw")
-
-    # # 笔记本数据集
-    # refactor_dataset(
-    #     r"../datasets/semeval14/Laptops_Train.xml.seg",
-    #     r"../atepc_datasets/laptop/Laptops.atepc.train.dat",
-    # )
-    # refactor_dataset(
-    #     r"../datasets/semeval14/Laptops_Test_Gold.xml.seg",
-    #     r"../atepc_datasets/laptop/Laptops.atepc.test.dat",
-    # )
-    # 餐厅数据集
     refactor_dataset(
         r"../datasets/semeval14/Restaurants_Train.xml.seg",
-        r"../atepc_datasets/restaurant/Restaurants.atepc.train.dat",
+        "Restaurants.atepc.train.dat",
     )
     refactor_dataset(
         r"../datasets/semeval14/Restaurants_Test_Gold.xml.seg",
-        r"../atepc_datasets/restaurant/Restaurants.atepc.test.dat",
+        "Restaurants.atepc.test.dat",
     )
-    # #  推特数据集
-    # refactor_dataset(
-    #     r"../datasets/acl-14-short-data/train.raw",
-    #     r"../atepc_datasets/twitter/twitter.atepc.train.dat",
-    # )
-    # refactor_dataset(
-    #     r"../datasets/acl-14-short-data/test.raw",
-    #     r"../atepc_datasets/twitter/twitter.atepc.test.dat",
-    # )
