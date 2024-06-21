@@ -143,15 +143,6 @@ def main(config):
     all_emotions = torch.tensor([f.emotions for f in eval_features], dtype=torch.long)
     eval_data = TensorDataset(all_spc_input_ids, all_input_mask, all_segment_ids, all_label_ids,
                               all_polarities,all_emotions,all_valid_ids, all_lmask_ids)
-    # print("check0", label_list)
-    # print('check', eval_features[0].input_ids_spc)
-    # print('check1', eval_features[0].segment_ids)
-    # print('check2', eval_features[0].polarities)
-    # print('check3', eval_features[0].emotions)
-    # print('check4', eval_features[0].label_id)
-    # print('check5', eval_features[0].label_mask)
-    # print('check6', eval_features[0].valid_ids)
-    # Run prediction for full data
     eval_sampler = RandomSampler(eval_data)
     eval_dataloader = DataLoader(eval_data, sampler=eval_sampler, batch_size=args.eval_batch_size)
 
@@ -231,7 +222,7 @@ def main(config):
                                    labels=[0, 1], average='macro')
             else:
                 test_f1 = f1_score(torch.argmax(test_apc_logits_all, -1).cpu(), test_polarities_all.cpu(),
-                                   labels=[0, 1, 2], average='macro',zero_division=0)
+                                   labels=[0, 1, 2], average='macro')
 
             test_acc = round(test_acc * 100, 2)
             test_f1 = round(test_f1 * 100, 2)
