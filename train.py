@@ -168,13 +168,12 @@ def main(config):
             emotions = emotions.to(device)
             l_mask = l_mask.to(device)
             with torch.no_grad():
-                ate_logits, apc_logits,emotion_logits = model(input_ids_spc, segment_ids, input_mask,
+                ate_logits, apc_logits,emotion_logits = model(input_ids_spc, segment_ids, input_mask,labels=None,
                                                valid_ids=valid_ids, polarities=polarities, emotions=emotions, attention_mask_label=l_mask)
             if eval_APC:
                 polarities = model.get_batch_polarities(polarities)
                 n_test_correct += (torch.argmax(apc_logits, -1) == polarities).sum().item()
                 n_test_total += len(polarities)
-
                 if test_polarities_all is None:
                     test_polarities_all = polarities
                     test_apc_logits_all = apc_logits
@@ -300,12 +299,8 @@ def main(config):
                 model.train()
                 batch = tuple(t.to(device) for t in batch)
                 input_ids_spc, input_mask, segment_ids, label_ids, polarities,emotions,valid_ids, l_mask = batch
-                loss_ate, loss_apc,loss_emo = model(input_ids_spc,segment_ids,input_mask, label_ids, polarities,emotions, valid_ids,
-                                           l_mask)
-                # Define the weights
-                weight_emo = 6.1
-                weight_ate = 1.0
-                weight_apc = 1.0
+                loss_ate, loss_apc,loss_emo = model(input_ids_spc,segment_ids,input_mask, label_ids, polarities, valid_ids,
+                                           l_mask,emotions)
 
                 # Calculate the weighted loss
                 loss =  loss_ate + loss_apc + loss_emo

@@ -130,6 +130,8 @@ class ATEPCProcessor(DataProcessor):
                     aspect.append(w)
                     aspect_tag.append(t)
                     aspect_polarity.append(-1)
+                    aspect_emotion.append(-1)
+
                 if e != -1:
                     aspect_emotion.append(-1)
             guid = "%s-%s" % (set_type, i)
@@ -267,14 +269,5 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
                           emotions=emotions,
                           valid_ids=valid,
                           label_mask=label_mask))
-        # print("input_ids_spc",features[-1].input_ids_spc)
-        # print("input_mask",features[-1].input_mask)
-        # print("segment_ids",features[-1].segment_ids)
-        # print("label_id",features[-1].label_id)
-        # print("polarities",features[-1].polarities)
-        # print("emotions",features[-1].emotions)
-        # print("valid_ids",features[-1].valid_ids)
-        # print("label_mask",features[-1].label_mask)
-
     return features
 

@@ -32,7 +32,7 @@ class LCF_ATEPC(BertForTokenClassification):
         self.args = args
         self.num_emotion_labels = 6
 
-        self.emotion_classifier = nn.Linear(config.hidden_size, 6)  # 6 for the number of emotions
+        self.emotion_classifier = nn.Linear(768, 6)  # 6 for the number of emotions
         # do not init lcf layer if BERT-SPC or BERT-BASE specified
         # if self.args.local_context_focus in {'cdw', 'cdm', 'fusion'}:
         if not self.args.use_unique_bert:
@@ -164,8 +164,7 @@ class LCF_ATEPC(BertForTokenClassification):
         return torch.tensor(text_ids).to(self.args.device)
 
     def forward(self, input_ids_spc, token_type_ids=None, attention_mask=None, labels=None, polarities=None,
-                emotions=None,
-                valid_ids=None, attention_mask_label=None):
+                valid_ids=None, attention_mask_label=None,emotions=None):
         if not self.args.use_bert_spc:
             input_ids_spc = self.get_ids_for_local_context_extractor(input_ids_spc)
             labels = self.get_batch_token_labels_bert_base_indices(labels)
@@ -188,7 +187,7 @@ class LCF_ATEPC(BertForTokenClassification):
         # pooled_global_context_out = self.pooler(global_context_out)
         # emotion_logits = self.emotion_classifier(pooled_global_context_out)
         if self.args.local_context_focus is not None:
-            local_context_ids = input_ids_spc  # Define local_context_ids here
+            local_context_ids = input_ids_spc
             local_context_out = self.bert_for_local_context(input_ids_spc, token_type_ids, attention_mask)[0]
             local_context_out = torch.mul(local_context_out, attention_mask.unsqueeze(2))
             local_context_out = self.dropout(local_context_out)
@@ -213,9 +212,7 @@ class LCF_ATEPC(BertForTokenClassification):
                 cdw_context_out = torch.mul(local_context_out, cdw_vec)
                 cat_out = torch.cat((global_context_out, cdw_context_out, cdm_context_out), dim=-1)
                 cat_out = self.linear_triple(cat_out)
-                sa_out = self.SA2(cat_out)
-                # pooled_out = self.pooler(sa_out)
-                # emotion_logits = self.emotion_classifier(pooled_out)
+
 
             sa_out = self.SA2(cat_out)
             pooled_out = self.pooler(sa_out)
