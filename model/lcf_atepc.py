@@ -32,7 +32,7 @@ class LCF_ATEPC(BertForTokenClassification):
         self.args = args
         self.num_emotion_labels = 6
 
-        self.emotion_classifier = nn.Linear(768, 6)  # 6 for the number of emotions
+        self.emotion_classifier = nn.Linear(768, 3)  # 6 for the number of emotions
         # do not init lcf layer if BERT-SPC or BERT-BASE specified
         # if self.args.local_context_focus in {'cdw', 'cdm', 'fusion'}:
         if not self.args.use_unique_bert:

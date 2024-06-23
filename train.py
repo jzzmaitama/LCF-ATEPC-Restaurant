@@ -237,7 +237,7 @@ def main(config):
             # print(torch.argmax(test_emotion_logits_all,-1).cpu())
             # print(test_emotions_all)
             # Compute the F1 score
-            emotion_f1 = f1_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(), labels=[0, 1, 2, 3, 4, 5], average='macro')
+            emotion_f1 = f1_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(), labels=[0, 1, 2], average='macro')
             emotion_acc = accuracy_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(),)
             emotion_acc = round(float(emotion_acc) * 100, 2)
             emotion_f1 = round(float(emotion_f1) * 100, 2)
