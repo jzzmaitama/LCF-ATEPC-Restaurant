@@ -414,7 +414,6 @@ if __name__ == "__main__":
             logger.info('No.{} training process of {}'.format(i + 1, n))
             # Assume that main(config) now returns emotion_test_acc and emotion_test_f1 as well
             apc_test_acc, apc_test_f1, ate_test_f1, emotion_test_acc, emotion_test_f1 = main(config)
-
             if apc_test_acc > max_apc_test_acc:
                 max_apc_test_acc = apc_test_acc
             if apc_test_f1 > max_apc_test_f1:
@@ -425,7 +424,6 @@ if __name__ == "__main__":
                 max_emotion_test_acc = emotion_test_acc
             if emotion_test_f1 > max_emotion_test_f1:
                 max_emotion_test_f1 = emotion_test_f1
-
             logger.info(
                 'max_ate_test_f1:{} max_apc_test_acc: {}\tmax_apc_test_f1: {} \tmax_emotion_test_acc: {}\tmax_emotion_test_f1: {}'
                 .format(max_ate_test_f1, max_apc_test_acc, max_apc_test_f1, max_emotion_test_acc, max_emotion_test_f1))
