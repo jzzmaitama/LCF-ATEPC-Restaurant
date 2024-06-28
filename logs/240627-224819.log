@@ -1,0 +1,42 @@
+log file: logs/240627-224819.log
+--------------------------------------------------------------------------------
+Config 1 (totally 1 configs)
+No.1 training process of 1
+>>> dataset: restaurant
+>>> output_dir: output
+>>> SRD: 5
+>>> learning_rate: 3e-05
+>>> use_unique_bert: True
+>>> use_bert_spc: False
+>>> local_context_focus: fusion
+>>> num_train_epochs: 1.0
+>>> train_batch_size: 3
+>>> dropout: 0.0
+>>> max_seq_length: 8
+>>> eval_batch_size: 32
+>>> eval_steps: 20
+>>> gradient_accumulation_steps: 1
+>>> config_path: experiments.json
+>>> device: cpu
+>>> seed: 1
+>>> bert_model: bert-base-uncased
+>>> data_dir: atepc_datasets/restaurant
+***** Running training *****
+  Num examples = 12886
+  Batch size = 3
+  Num steps = 4295
+################################################################################
+Train 1 Epoch1
+################################################################################
+********************************************************************************
+Train 1 Epoch1, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 69.72(max: 69.72)  APC_test_f1: 30.13(max: 30.13)
+ATE_test_f1: 0.0(max:0)
+Emotion_test_acc: 16.71(max: 16.71) Emotion_test_f1: 6.61(max: 6.61)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch1, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 79.62(max: 79.62)  APC_test_f1: 29.55(max: 30.13)
+ATE_test_f1: 0.0(max:0)
+Emotion_test_acc: 15.73(max: 16.71) Emotion_test_f1: 5.31(max: 6.61)
+********************************************************************************
