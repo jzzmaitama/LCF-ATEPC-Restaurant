@@ -6,10 +6,10 @@
     "use_bert_spc_for_apc": false,
     "SRD": 5,
     "learning_rate": 3e-5,
-    "dropout": 0,
+    "dropout": 0.1,
     "num_train_epochs": 1,
-    "train_batch_size": 3,
-    "max_seq_length": 8,
+    "train_batch_size": 4,
+    "max_seq_length": 25,
     "local_context_focus": "fusion"
   }
 }
