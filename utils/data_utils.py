@@ -266,8 +266,8 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
                           segment_ids=segment_ids,
                           label_id=label_ids,
                           polarities=polarities,
-                          emotions=emotions,
                           valid_ids=valid,
-                          label_mask=label_mask))
+                          label_mask=label_mask,
+                          emotions=emotions))
     return features
 

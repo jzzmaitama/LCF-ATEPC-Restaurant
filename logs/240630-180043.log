@@ -1,0 +1,60 @@
+log file: logs/240630-180043.log
+--------------------------------------------------------------------------------
+Config 1 (totally 1 configs)
+No.1 training process of 1
+>>> dataset: restaurant
+>>> output_dir: output
+>>> SRD: 5
+>>> learning_rate: 3e-05
+>>> use_unique_bert: True
+>>> use_bert_spc: False
+>>> local_context_focus: fusion
+>>> num_train_epochs: 1.0
+>>> train_batch_size: 4
+>>> dropout: 0.1
+>>> max_seq_length: 25
+>>> eval_batch_size: 32
+>>> eval_steps: 20
+>>> gradient_accumulation_steps: 1
+>>> config_path: experiments.json
+>>> device: cpu
+>>> seed: 1
+>>> bert_model: bert-base-uncased
+>>> data_dir: atepc_datasets/restaurant
+***** Running training *****
+  Num examples = 3308
+  Batch size = 4
+  Num steps = 827
+################################################################################
+Train 1 Epoch1
+################################################################################
+********************************************************************************
+Train 1 Epoch1, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 55.67(max: 55.67)  APC_test_f1: 25.32(max: 25.32)
+ATE_test_f1: 0.25(max:0.25)
+Emotion_test_acc: 63.21(max: 63.21) Emotion_test_f1: 27.39(max: 27.39)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch1, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 57.72(max: 57.72)  APC_test_f1: 24.64(max: 25.32)
+ATE_test_f1: 0.0(max:0.25)
+Emotion_test_acc: 64.34(max: 64.34) Emotion_test_f1: 26.1(max: 27.39)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch1, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 56.31(max: 57.72)  APC_test_f1: 24.73(max: 25.32)
+ATE_test_f1: 0.0(max:0.25)
+Emotion_test_acc: 64.55(max: 64.55) Emotion_test_f1: 26.3(max: 27.39)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch1, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 52.36(max: 57.72)  APC_test_f1: 25.53(max: 25.53)
+ATE_test_f1: 0.0(max:0.25)
+Emotion_test_acc: 62.23(max: 64.55) Emotion_test_f1: 28.15(max: 28.15)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch1, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 54.9(max: 57.72)  APC_test_f1: 24.97(max: 25.53)
+ATE_test_f1: 0.0(max:0.25)
+Emotion_test_acc: 65.05(max: 65.05) Emotion_test_f1: 26.42(max: 28.15)
+********************************************************************************

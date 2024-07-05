@@ -54,24 +54,6 @@ def main(config):
     label_list = processor.get_labels()
     num_labels = len(label_list) + 1
 
-    """
-    'camera': "atepc_datasets/camera",
-        'car': "atepc_datasets/car",
-        'phone': "atepc_datasets/phone",
-        'notebook': "atepc_datasets/notebook",
-        'laptop': "atepc_datasets/laptop",
-        'twitter': "atepc_datasets/twitter",
-        'mixed': "atepc_datasets/mixed",
-         'camera': "bert-base-chinese",
-        'car': "bert-base-chinese",
-        'phone': "bert-base-chinese",
-        'notebook': "bert-base-chinese",
-        'laptop': "bert-base-uncased",
-        # for loading domain-adapted BERT
-        # 'restaurant': "../bert_pretrained_restaurant",
-        'twitter': "bert-base-uncased",
-        'mixed': "bert-base-multilingual-uncased",
-    """
     datasets = {
         'restaurant': "atepc_datasets/restaurant",
     }
@@ -101,10 +83,6 @@ def main(config):
     # print('check4',train_examples[0].aspect_label)
     # print('check5',train_examples[0].sentence_label)
     # print('check6',train_examples[0].guid)
-
-
-
-
     eval_examples = processor.get_test_examples(args.data_dir)
     num_train_optimization_steps = int(
         len(train_examples) / args.train_batch_size / args.gradient_accumulation_steps) * args.num_train_epochs
@@ -138,11 +116,10 @@ def main(config):
     all_input_mask = torch.tensor([f.input_mask for f in eval_features], dtype=torch.long)
     all_label_ids = torch.tensor([f.label_id for f in eval_features], dtype=torch.long)
     all_polarities = torch.tensor([f.polarities for f in eval_features], dtype=torch.long)
+    all_emotions = torch.tensor([f.emotions for f in eval_features], dtype=torch.long)
     all_valid_ids = torch.tensor([f.valid_ids for f in eval_features], dtype=torch.long)
     all_lmask_ids = torch.tensor([f.label_mask for f in eval_features], dtype=torch.long)
-    all_emotions = torch.tensor([f.emotions for f in eval_features], dtype=torch.long)
-    eval_data = TensorDataset(all_spc_input_ids, all_input_mask, all_segment_ids, all_label_ids,
-                              all_polarities,all_emotions,all_valid_ids, all_lmask_ids)
+    eval_data = TensorDataset(all_spc_input_ids, all_input_mask, all_segment_ids, all_label_ids,all_polarities,all_valid_ids, all_lmask_ids,all_emotions)
     eval_sampler = RandomSampler(eval_data)
     eval_dataloader = DataLoader(eval_data, sampler=eval_sampler, batch_size=args.eval_batch_size)
 
@@ -153,23 +130,23 @@ def main(config):
         y_true = []
         y_pred = []
         n_test_correct, n_test_total = 0, 0
-        n_e_test_correct, n_e_test_total = 0, 0
         test_apc_logits_all, test_polarities_all = None, None
         test_emotion_logits_all, test_emotions_all = None, None
         model.eval()
         label_map = {i: label for i, label in enumerate(label_list, 1)}
-        for input_ids_spc, input_mask, segment_ids, label_ids, polarities,emotions, valid_ids, l_mask in eval_dataloader:
+        for input_ids_spc, input_mask, segment_ids, label_ids, polarities, valid_ids, l_mask,emotions in eval_dataloader:
             input_ids_spc = input_ids_spc.to(device)
             input_mask = input_mask.to(device)
             segment_ids = segment_ids.to(device)
             valid_ids = valid_ids.to(device)
             label_ids = label_ids.to(device)
             polarities = polarities.to(device)
-            emotions = emotions.to(device)
             l_mask = l_mask.to(device)
+            emotions = emotions.to(device)
             with torch.no_grad():
-                ate_logits, apc_logits,emotion_logits = model(input_ids_spc, segment_ids, input_mask,labels=None,
-                                               valid_ids=valid_ids, polarities=polarities, emotions=emotions, attention_mask_label=l_mask)
+                # ate_logits, apc_logits = 
+                ate_logits, apc_logits,emotion_logits = model(input_ids_spc, segment_ids, input_mask,
+                                               valid_ids=valid_ids, polarities=polarities, attention_mask_label=l_mask,emotions=emotions)
             if eval_APC:
                 polarities = model.get_batch_polarities(polarities)
                 n_test_correct += (torch.argmax(apc_logits, -1) == polarities).sum().item()
@@ -180,6 +157,18 @@ def main(config):
                 else:
                     test_polarities_all = torch.cat((test_polarities_all, polarities), dim=0)
                     test_apc_logits_all = torch.cat((test_apc_logits_all, apc_logits), dim=0)
+
+            if eval_emotion:
+                emotions = model.get_batch_emotions(emotions)
+                n_test_correct += (torch.argmax(emotion_logits, -1) == emotions).sum().item()
+                n_test_total += len(emotions)
+
+                if test_emotions_all is None:
+                    test_emotions_all = emotions
+                    test_emotion_logits_all = emotion_logits
+                else:
+                    test_emotions_all = torch.cat((test_emotions_all, emotions), dim=0)
+                    test_emotion_logits_all = torch.cat((test_emotion_logits_all, emotion_logits), dim=0)
 
             if eval_ATE:
                 if not args.use_bert_spc:
@@ -202,41 +191,19 @@ def main(config):
                             temp_1.append(label_map.get(label_ids[i][j], 'O'))
                             temp_2.append(label_map.get(ate_logits[i][j], 'O'))
 
-            if eval_emotion:
-                emotions = model.get_batch_emotions(emotions)
-                n_e_test_correct += (torch.argmax(emotion_logits, -1) == emotions).sum().item()
-                n_e_test_total += len(emotions)
-
-                if test_emotions_all is None:
-                    test_emotions_all = emotions
-                    test_emotion_logits_all = emotion_logits
-                else:
-                    test_emotions_all = torch.cat((test_emotions_all, emotions), dim=0)
-                    test_emotion_logits_all = torch.cat((test_emotion_logits_all, emotion_logits), dim=0)
-
         if eval_APC:
             test_acc = n_test_correct / n_test_total
-            if args.dataset in {'camera', 'car', 'phone', 'notebook'}:
-                test_f1 = f1_score(torch.argmax(test_apc_logits_all, -1).cpu(), test_polarities_all.cpu(),
-                                   labels=[0, 1], average='macro')
-            else:
-                test_f1 = f1_score(torch.argmax(test_apc_logits_all, -1).cpu(), test_polarities_all.cpu(),
+            test_f1 = f1_score(torch.argmax(test_apc_logits_all, -1).cpu(), test_polarities_all.cpu(),
                                    labels=[0, 1, 2], average='macro')
-
             test_acc = round(test_acc * 100, 2)
             test_f1 = round(test_f1 * 100, 2)
             apc_result = {'max_apc_test_acc': test_acc, 'max_apc_test_f1': test_f1}
 
         if eval_ATE:
-            # print("y_true=",y_true)
-            # print("y_pred=",y_pred)
             report = classification_report(y_true, y_pred, digits=4)
             tmps = report.split()
             ate_result = round(float(tmps[7]) * 100, 2)
         if eval_emotion:
-            # print(torch.argmax(test_emotion_logits_all,-1).cpu())
-            # print(test_emotions_all)
-            # Compute the F1 score
             emotion_f1 = f1_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(), labels=[0, 1, 2], average='macro')
             emotion_acc = accuracy_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(),)
             emotion_acc = round(float(emotion_acc) * 100, 2)
@@ -262,15 +229,6 @@ def main(config):
         logger.info("  Num examples = %d", len(train_examples))
         logger.info("  Batch size = %d", args.train_batch_size)
         logger.info("  Num steps = %d", num_train_optimization_steps)
-        # print("check0",label_list)
-        # print("checkx")
-        # print('check', train_features[0].input_ids_spc)
-        # print('check1', train_features[0].segment_ids)
-        # print('check2', train_features[0].polarities)
-        # print('check3', train_features[0].emotions)
-        # print('check4', train_features[0].label_id)
-        # print('check5', train_features[0].label_mask)
-        # print('check6', train_features[0].valid_ids)
         all_spc_input_ids = torch.tensor([f.input_ids_spc for f in train_features], dtype=torch.long)
         all_segment_ids = torch.tensor([f.segment_ids for f in train_features], dtype=torch.long)
         all_input_mask = torch.tensor([f.input_mask for f in train_features], dtype=torch.long)
@@ -281,7 +239,7 @@ def main(config):
         all_emotions = torch.tensor([f.emotions for f in train_features], dtype=torch.long)
 
         train_data = TensorDataset(all_spc_input_ids, all_input_mask, all_segment_ids,
-                                   all_label_ids, all_polarities,all_emotions,all_valid_ids, all_lmask_ids)
+                                   all_label_ids, all_polarities,all_valid_ids, all_lmask_ids,all_emotions)
         train_sampler = SequentialSampler(train_data)
         train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=args.train_batch_size)
         max_apc_test_acc = 0
@@ -298,7 +256,7 @@ def main(config):
             for step, batch in enumerate(train_dataloader):
                 model.train()
                 batch = tuple(t.to(device) for t in batch)
-                input_ids_spc, input_mask, segment_ids, label_ids, polarities,emotions,valid_ids, l_mask = batch
+                input_ids_spc, input_mask, segment_ids, label_ids, polarities,valid_ids, l_mask,emotions = batch
                 loss_ate, loss_apc,loss_emo = model(input_ids_spc,segment_ids,input_mask, label_ids, polarities, valid_ids,
                                            l_mask,emotions)
 
@@ -309,6 +267,7 @@ def main(config):
                 nb_tr_steps += 1
                 optimizer.step()
                 optimizer.zero_grad()
+                global_step += 1
                 if global_step % args.eval_steps == 0:
                     if epoch >= args.num_train_epochs - 2 or args.num_train_epochs <= 2:
                         # evaluate in last 2 epochs
