@@ -361,7 +361,7 @@ if __name__ == "__main__":
     # device = torch.device("cuda" + str(index) if torch.cuda.is_available() else "cpu")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     exp_configs = parse_experiments(experiments.config_path)
-    n = 1
+    n = 5
     for config in exp_configs:
         logger.info('-' * 80)
         logger.info('Config {} (totally {} configs)'.format(exp_configs.index(config) + 1, len(exp_configs)))
