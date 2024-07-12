@@ -88,124 +88,123 @@ class LCF_ATEPC(BertForTokenClassification):
         emotions = torch.from_numpy(emotions).long().to(self.args.device)
         return emotions
 
-        # We are request for efficient lcf implementations.
-    # def feature_dynamic_weighted(self, text_local_indices, polarities):
-    #     text_ids = text_local_indices.detach().cpu().numpy()
-    #     asp_ids = polarities.detach().cpu().numpy()
-    #     weighted_text_raw_indices = np.ones((text_local_indices.size(0), text_local_indices.size(1), 768), dtype=np.float32)
-    #     SRD =self.args.SRD
-    #     for text_i, asp_i in zip(range(len(text_ids)), range(len(asp_ids))):
-    #         a_ids = np.flatnonzero(asp_ids[asp_i] + 1)
-    #         text_len = np.flatnonzero(text_ids[text_i])[-1] + 1
-    #         asp_len = len(a_ids)
-    #         try:
-    #             asp_begin = a_ids[0]
-    #         except:
-    #             asp_begin=0
-    #         asp_avg_index = (asp_begin * 2 + asp_len) / 2
-    #         # a_ids[-1] + asp_len + 1 is the position of the last token_i [SEP]
-    #         distances = np.zeros((text_len), dtype=np.float32)
-    #         for i in range(len(distances)):
-    #             if abs(i - asp_avg_index) + asp_len / 2 > SRD:
-    #                 distances[i] = 1 - (abs(i - asp_avg_index) + asp_len / 2
-    #                                     - SRD) / len(distances)
-    #             else:
-    #                 distances[i] = 1
-    #         for i in range(len(distances)):
-    #             weighted_text_raw_indices[text_i][i] = weighted_text_raw_indices[text_i][i] * distances[i]
-    #     weighted_text_raw_indices = torch.from_numpy(weighted_text_raw_indices)
-    #     return weighted_text_raw_indices.to(self.args.device)
-
-    # def feature_dynamic_mask(self, text_local_indices, polarities):
-    #     text_ids = text_local_indices.detach().cpu().numpy()
-    #     asp_ids = polarities.detach().cpu().numpy()
-    #     SRD =self.args.SRD
-    #     masked_text_raw_indices = np.ones((text_local_indices.size(0), text_local_indices.size(1), 768), dtype=np.float32)
-    #     for text_i, asp_i in zip(range(len(text_ids)), range(len(asp_ids))):
-    #         a_ids = np.flatnonzero(asp_ids[asp_i] + 1)
-    #         try:
-    #             asp_begin = a_ids[0]
-    #         except:
-    #             asp_begin=0
-    #         asp_len = len(a_ids)
-    #         if asp_begin >= SRD:
-    #             mask_begin = asp_begin - SRD
-    #         else:
-    #             mask_begin = 0
-    #         for i in range(mask_begin):
-    #             masked_text_raw_indices[text_i][i] = np.zeros((768), dtype=np.float64)
-    #         for j in range(asp_begin + asp_len + SRD - 1, self.args.max_seq_length):
-    #             masked_text_raw_indices[text_i][j] = np.zeros((768), dtype=np.float64)
-    #     masked_text_raw_indices = torch.from_numpy(masked_text_raw_indices)
-    #     return masked_text_raw_indices.to(self.args.device)
-
     def feature_dynamic_weighted(self, text_local_indices, polarities):
         text_ids = text_local_indices.detach().cpu().numpy()
         asp_ids = polarities.detach().cpu().numpy()
-        emo_ids = self.get_batch_emotions(polarities).detach().cpu().numpy()  # Assuming emotions are stored similarly to polarities
         weighted_text_raw_indices = np.ones((text_local_indices.size(0), text_local_indices.size(1), 768), dtype=np.float32)
-        SRD = self.args.SRD
-
-        for text_i, asp_i, emo_i in zip(range(len(text_ids)), range(len(asp_ids)), range(len(emo_ids))):
+        SRD =self.args.SRD
+        for text_i, asp_i in zip(range(len(text_ids)), range(len(asp_ids))):
             a_ids = np.flatnonzero(asp_ids[asp_i] + 1)
-            e_ids = np.flatnonzero(emo_ids[emo_i] + 1)
             text_len = np.flatnonzero(text_ids[text_i])[-1] + 1
             asp_len = len(a_ids)
             try:
                 asp_begin = a_ids[0]
             except:
-                asp_begin = 0
-
-            # Combine polarity and emotion information
-            combined_ids = np.union1d(a_ids, e_ids)
-            combined_avg_index = np.mean(combined_ids)
-            
+                asp_begin=0
+            asp_avg_index = (asp_begin * 2 + asp_len) / 2
+            # a_ids[-1] + asp_len + 1 is the position of the last token_i [SEP]
             distances = np.zeros((text_len), dtype=np.float32)
             for i in range(len(distances)):
-                if abs(i - combined_avg_index) + asp_len / 2 > SRD:
-                    distances[i] = 1 - (abs(i - combined_avg_index) + asp_len / 2 - SRD) / len(distances)
+                if abs(i - asp_avg_index) + asp_len / 2 > SRD:
+                    distances[i] = 1 - (abs(i - asp_avg_index) + asp_len / 2
+                                        - SRD) / len(distances)
                 else:
                     distances[i] = 1
-            
             for i in range(len(distances)):
                 weighted_text_raw_indices[text_i][i] = weighted_text_raw_indices[text_i][i] * distances[i]
-        
         weighted_text_raw_indices = torch.from_numpy(weighted_text_raw_indices)
         return weighted_text_raw_indices.to(self.args.device)
 
     def feature_dynamic_mask(self, text_local_indices, polarities):
         text_ids = text_local_indices.detach().cpu().numpy()
         asp_ids = polarities.detach().cpu().numpy()
-        emo_ids = self.get_batch_emotions(polarities).detach().cpu().numpy()  # Assuming emotions are stored similarly to polarities
-        SRD = self.args.SRD
+        SRD =self.args.SRD
         masked_text_raw_indices = np.ones((text_local_indices.size(0), text_local_indices.size(1), 768), dtype=np.float32)
-
-        for text_i, asp_i, emo_i in zip(range(len(text_ids)), range(len(asp_ids)), range(len(emo_ids))):
+        for text_i, asp_i in zip(range(len(text_ids)), range(len(asp_ids))):
             a_ids = np.flatnonzero(asp_ids[asp_i] + 1)
-            e_ids = np.flatnonzero(emo_ids[emo_i] + 1)
             try:
                 asp_begin = a_ids[0]
             except:
-                asp_begin = 0
+                asp_begin=0
             asp_len = len(a_ids)
-
-            # Combine polarity and emotion information
-            combined_ids = np.union1d(a_ids, e_ids)
-            combined_begin = min(combined_ids)
-            combined_len = len(combined_ids)
-            
-            if combined_begin >= SRD:
-                mask_begin = combined_begin - SRD
+            if asp_begin >= SRD:
+                mask_begin = asp_begin - SRD
             else:
                 mask_begin = 0
-            
             for i in range(mask_begin):
                 masked_text_raw_indices[text_i][i] = np.zeros((768), dtype=np.float64)
-            for j in range(combined_begin + combined_len + SRD - 1, self.args.max_seq_length):
+            for j in range(asp_begin + asp_len + SRD - 1, self.args.max_seq_length):
                 masked_text_raw_indices[text_i][j] = np.zeros((768), dtype=np.float64)
-
         masked_text_raw_indices = torch.from_numpy(masked_text_raw_indices)
         return masked_text_raw_indices.to(self.args.device)
+
+    # def feature_dynamic_weighted(self, text_local_indices, polarities):
+    #     text_ids = text_local_indices.detach().cpu().numpy()
+    #     asp_ids = polarities.detach().cpu().numpy()
+    #     emo_ids = self.get_batch_emotions(polarities).detach().cpu().numpy()  # Assuming emotions are stored similarly to polarities
+    #     weighted_text_raw_indices = np.ones((text_local_indices.size(0), text_local_indices.size(1), 768), dtype=np.float32)
+    #     SRD = self.args.SRD
+    #
+    #     for text_i, asp_i, emo_i in zip(range(len(text_ids)), range(len(asp_ids)), range(len(emo_ids))):
+    #         a_ids = np.flatnonzero(asp_ids[asp_i] + 1)
+    #         e_ids = np.flatnonzero(emo_ids[emo_i] + 1)
+    #         text_len = np.flatnonzero(text_ids[text_i])[-1] + 1
+    #         asp_len = len(a_ids)
+    #         try:
+    #             asp_begin = a_ids[0]
+    #         except:
+    #             asp_begin = 0
+    #
+    #         # Combine polarity and emotion information
+    #         combined_ids = np.union1d(a_ids, e_ids)
+    #         combined_avg_index = np.mean(combined_ids)
+    #
+    #         distances = np.zeros((text_len), dtype=np.float32)
+    #         for i in range(len(distances)):
+    #             if abs(i - combined_avg_index) + asp_len / 2 > SRD:
+    #                 distances[i] = 1 - (abs(i - combined_avg_index) + asp_len / 2 - SRD) / len(distances)
+    #             else:
+    #                 distances[i] = 1
+    #
+    #         for i in range(len(distances)):
+    #             weighted_text_raw_indices[text_i][i] = weighted_text_raw_indices[text_i][i] * distances[i]
+    #
+    #     weighted_text_raw_indices = torch.from_numpy(weighted_text_raw_indices)
+    #     return weighted_text_raw_indices.to(self.args.device)
+    #
+    # def feature_dynamic_mask(self, text_local_indices, polarities):
+    #     text_ids = text_local_indices.detach().cpu().numpy()
+    #     asp_ids = polarities.detach().cpu().numpy()
+    #     emo_ids = self.get_batch_emotions(polarities).detach().cpu().numpy()  # Assuming emotions are stored similarly to polarities
+    #     SRD = self.args.SRD
+    #     masked_text_raw_indices = np.ones((text_local_indices.size(0), text_local_indices.size(1), 768), dtype=np.float32)
+    #
+    #     for text_i, asp_i, emo_i in zip(range(len(text_ids)), range(len(asp_ids)), range(len(emo_ids))):
+    #         a_ids = np.flatnonzero(asp_ids[asp_i] + 1)
+    #         e_ids = np.flatnonzero(emo_ids[emo_i] + 1)
+    #         try:
+    #             asp_begin = a_ids[0]
+    #         except:
+    #             asp_begin = 0
+    #         asp_len = len(a_ids)
+    #
+    #         # Combine polarity and emotion information
+    #         combined_ids = np.union1d(a_ids, e_ids)
+    #         combined_begin = min(combined_ids)
+    #         combined_len = len(combined_ids)
+    #
+    #         if combined_begin >= SRD:
+    #             mask_begin = combined_begin - SRD
+    #         else:
+    #             mask_begin = 0
+    #
+    #         for i in range(mask_begin):
+    #             masked_text_raw_indices[text_i][i] = np.zeros((768), dtype=np.float64)
+    #         for j in range(combined_begin + combined_len + SRD - 1, self.args.max_seq_length):
+    #             masked_text_raw_indices[text_i][j] = np.zeros((768), dtype=np.float64)
+    #
+    #     masked_text_raw_indices = torch.from_numpy(masked_text_raw_indices)
+    #     return masked_text_raw_indices.to(self.args.device)
 
 
     def get_ids_for_local_context_extractor(self, text_indices):
