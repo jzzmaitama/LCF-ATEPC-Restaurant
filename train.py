@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-# file: train.py
-# Copyright (C) 2019. All Rights Reserved.
-
 import argparse
 import json
 import logging
@@ -9,20 +5,17 @@ import os, sys
 import random
 from sklearn.metrics import f1_score
 from time import strftime, localtime
-
 import numpy as np
 import torch
 import torch.nn.functional as F
 from transformers.optimization import AdamW
 from transformers.models.bert.modeling_bert import BertModel
 from transformers import BertTokenizer
-# from pytorch_transformers.optimization import AdamW
-# from pytorch_transformers.tokenization_bert import BertTokenizer
-# from pytorch_transformers.modeling_bert import BertModel
 from seqeval.metrics import classification_report, accuracy_score
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler, TensorDataset)
 from utils.data_utils import ATEPCProcessor, convert_examples_to_features
 from model.lcf_atepc import LCF_ATEPC
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
