@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# file: lcf_atepc.py
-
 from transformers.models.bert.modeling_bert import BertForTokenClassification, BertPooler, BertSelfAttention
 from torch.nn import CrossEntropyLoss
 import torch
