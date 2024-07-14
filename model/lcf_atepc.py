@@ -29,7 +29,7 @@ class LCF_ATEPC(BertForTokenClassification):
         self.args = args
         self.num_emotion_labels = 6
 
-        self.emotion_classifier = nn.Linear(768, 3)  # 6 for the number of emotions
+        self.emotion_classifier = nn.Linear(768, 6)  # 6 for the number of emotions
         # do not init lcf layer if BERT-SPC or BERT-BASE specified
         # if self.args.local_context_focus in {'cdw', 'cdm', 'fusion'}:
         if not self.args.use_unique_bert:
@@ -85,7 +85,7 @@ class LCF_ATEPC(BertForTokenClassification):
         emotions = torch.from_numpy(emotions).long().to(self.args.device)
         return emotions
 
-    def feature_dynamic_weighted(self, text_local_indices, polarities):
+    def polarity_feature_dynamic_weighted(self, text_local_indices, polarities):
         text_ids = text_local_indices.detach().cpu().numpy()
         asp_ids = polarities.detach().cpu().numpy()
         weighted_text_raw_indices = np.ones((text_local_indices.size(0), text_local_indices.size(1), 768), dtype=np.float32)
@@ -112,7 +112,7 @@ class LCF_ATEPC(BertForTokenClassification):
         weighted_text_raw_indices = torch.from_numpy(weighted_text_raw_indices)
         return weighted_text_raw_indices.to(self.args.device)
 
-    def feature_dynamic_mask(self, text_local_indices, polarities):
+    def polarity_feature_dynamic_mask(self, text_local_indices, polarities):
         text_ids = text_local_indices.detach().cpu().numpy()
         asp_ids = polarities.detach().cpu().numpy()
         SRD =self.args.SRD
@@ -135,75 +135,43 @@ class LCF_ATEPC(BertForTokenClassification):
         masked_text_raw_indices = torch.from_numpy(masked_text_raw_indices)
         return masked_text_raw_indices.to(self.args.device)
 
-    # def feature_dynamic_weighted(self, text_local_indices, polarities):
-    #     text_ids = text_local_indices.detach().cpu().numpy()
-    #     asp_ids = polarities.detach().cpu().numpy()
-    #     emo_ids = self.get_batch_emotions(polarities).detach().cpu().numpy()  # Assuming emotions are stored similarly to polarities
-    #     weighted_text_raw_indices = np.ones((text_local_indices.size(0), text_local_indices.size(1), 768), dtype=np.float32)
-    #     SRD = self.args.SRD
-    #
-    #     for text_i, asp_i, emo_i in zip(range(len(text_ids)), range(len(asp_ids)), range(len(emo_ids))):
-    #         a_ids = np.flatnonzero(asp_ids[asp_i] + 1)
-    #         e_ids = np.flatnonzero(emo_ids[emo_i] + 1)
-    #         text_len = np.flatnonzero(text_ids[text_i])[-1] + 1
-    #         asp_len = len(a_ids)
-    #         try:
-    #             asp_begin = a_ids[0]
-    #         except:
-    #             asp_begin = 0
-    #
-    #         # Combine polarity and emotion information
-    #         combined_ids = np.union1d(a_ids, e_ids)
-    #         combined_avg_index = np.mean(combined_ids)
-    #
-    #         distances = np.zeros((text_len), dtype=np.float32)
-    #         for i in range(len(distances)):
-    #             if abs(i - combined_avg_index) + asp_len / 2 > SRD:
-    #                 distances[i] = 1 - (abs(i - combined_avg_index) + asp_len / 2 - SRD) / len(distances)
-    #             else:
-    #                 distances[i] = 1
-    #
-    #         for i in range(len(distances)):
-    #             weighted_text_raw_indices[text_i][i] = weighted_text_raw_indices[text_i][i] * distances[i]
-    #
-    #     weighted_text_raw_indices = torch.from_numpy(weighted_text_raw_indices)
-    #     return weighted_text_raw_indices.to(self.args.device)
-    #
-    # def feature_dynamic_mask(self, text_local_indices, polarities):
-    #     text_ids = text_local_indices.detach().cpu().numpy()
-    #     asp_ids = polarities.detach().cpu().numpy()
-    #     emo_ids = self.get_batch_emotions(polarities).detach().cpu().numpy()  # Assuming emotions are stored similarly to polarities
-    #     SRD = self.args.SRD
-    #     masked_text_raw_indices = np.ones((text_local_indices.size(0), text_local_indices.size(1), 768), dtype=np.float32)
-    #
-    #     for text_i, asp_i, emo_i in zip(range(len(text_ids)), range(len(asp_ids)), range(len(emo_ids))):
-    #         a_ids = np.flatnonzero(asp_ids[asp_i] + 1)
-    #         e_ids = np.flatnonzero(emo_ids[emo_i] + 1)
-    #         try:
-    #             asp_begin = a_ids[0]
-    #         except:
-    #             asp_begin = 0
-    #         asp_len = len(a_ids)
-    #
-    #         # Combine polarity and emotion information
-    #         combined_ids = np.union1d(a_ids, e_ids)
-    #         combined_begin = min(combined_ids)
-    #         combined_len = len(combined_ids)
-    #
-    #         if combined_begin >= SRD:
-    #             mask_begin = combined_begin - SRD
-    #         else:
-    #             mask_begin = 0
-    #
-    #         for i in range(mask_begin):
-    #             masked_text_raw_indices[text_i][i] = np.zeros((768), dtype=np.float64)
-    #         for j in range(combined_begin + combined_len + SRD - 1, self.args.max_seq_length):
-    #             masked_text_raw_indices[text_i][j] = np.zeros((768), dtype=np.float64)
-    #
-    #     masked_text_raw_indices = torch.from_numpy(masked_text_raw_indices)
-    #     return masked_text_raw_indices.to(self.args.device)
+    def emotions_feature_dynamic_weighted(self, text_local_indices, emotions):
+        text_ids = text_local_indices.detach().cpu().numpy()
+        emotion_ids = emotions.detach().cpu().numpy()
+        weighted_text_raw_indices = np.ones((text_local_indices.size(0), text_local_indices.size(1), 768),
+                                            dtype=np.float32)
 
+        for text_i in range(len(text_ids)):
+            emotion_labels = emotion_ids[text_i]
+            text_len = np.flatnonzero(text_ids[text_i])[-1] + 1
 
+            # Calculate weights based on emotion labels
+            for i in range(text_len):
+                if emotion_labels[i] != -1:
+                    emotion_labels_tensor = torch.tensor(emotion_labels[i],dtype=torch.float32)
+                    transformed_label = torch.sigmoid(emotion_labels_tensor)
+                    weighted_text_raw_indices[text_i][i] *= transformed_label.item()  # Adjust weights based on transform emotion labels
+
+        weighted_text_raw_indices = torch.from_numpy(weighted_text_raw_indices)
+        return weighted_text_raw_indices.to(self.args.device)
+
+    def emotions_feature_dynamic_mask(self, text_local_indices, emotions):
+        text_ids = text_local_indices.detach().cpu().numpy()
+        emotion_ids = emotions.detach().cpu().numpy()
+        masked_text_raw_indices = np.ones((text_local_indices.size(0), text_local_indices.size(1), 768),
+                                          dtype=np.float32)
+
+        for text_i in range(len(text_ids)):
+            emotion_labels = emotion_ids[text_i]
+            text_len = np.flatnonzero(text_ids[text_i])[-1] + 1
+
+            # Mask out tokens without emotion labels
+            for i in range(text_len):
+                if emotion_labels[i] == -1:
+                    masked_text_raw_indices[text_i][i] = np.zeros((768,), dtype=np.float32)
+
+        masked_text_raw_indices = torch.from_numpy(masked_text_raw_indices)
+        return masked_text_raw_indices.to(self.args.device)
     def get_ids_for_local_context_extractor(self, text_indices):
         text_ids = text_indices.detach().cpu().numpy()
         for text_i in range(len(text_ids)):
@@ -249,31 +217,51 @@ class LCF_ATEPC(BertForTokenClassification):
             local_context_out = self.dropout(local_valid_output)
 
             if 'cdm' in self.args.local_context_focus:
-                cdm_vec = self.feature_dynamic_mask(local_context_ids, polarities)
-                cdm_context_out = torch.mul(local_context_out, cdm_vec)
-                cdm_context_out = self.SA1(cdm_context_out)
-                cat_out = torch.cat((global_context_out, cdm_context_out), dim=-1)
-                cat_out = self.linear_double(cat_out)
+                cdm_p_vec = self.polarity_feature_dynamic_mask(local_context_ids, polarities)
+                cdm_e_vec = self.emotions_feature_dynamic_mask(local_context_ids, emotions)
+                cdm_p_context_out = torch.mul(local_context_out, cdm_p_vec)
+                cdm_e_context_out = torch.mul(local_context_out, cdm_e_vec)
+                cdm_p_context_out = self.SA1(cdm_p_context_out)
+                cdm_e_context_out = self.SA1(cdm_e_context_out)
+                cat_p_out = torch.cat((global_context_out, cdm_p_context_out), dim=-1)
+                cat_e_out = torch.cat((global_context_out, cdm_e_context_out), dim=-1)
+                cat_p_out = self.linear_double(cat_p_out)
+                cat_e_out = self.linear_double(cat_e_out)
             elif 'cdw' in self.args.local_context_focus:
-                cdw_vec = self.feature_dynamic_weighted(local_context_ids, polarities)
-                cdw_context_out = torch.mul(local_context_out, cdw_vec)
-                cdw_context_out = self.SA1(cdw_context_out)
-                cat_out = torch.cat((global_context_out, cdw_context_out), dim=-1)
-                cat_out = self.linear_double(cat_out)
+                cdw_p_vec = self.polarity_feature_dynamic_weighted(local_context_ids, polarities)
+                cdw_e_vec = self.emotions_feature_dynamic_weighted(local_context_ids, emotions)
+                cdw_p_context_out = torch.mul(local_context_out, cdw_p_vec)
+                cdw_e_context_out = torch.mul(local_context_out, cdw_e_vec)
+                cdw_p_context_out = self.SA1(cdw_p_context_out)
+                cdw_e_context_out = self.SA1(cdw_e_context_out)
+                cat_p_out = torch.cat((global_context_out, cdw_p_context_out), dim=-1)
+                cat_e_out = torch.cat((global_context_out, cdw_e_context_out), dim=-1)
+                cat_p_out = self.linear_double(cat_p_out)
+                cat_e_out = self.linear_double(cat_e_out)
             elif 'fusion' in self.args.local_context_focus:
-                cdm_vec = self.feature_dynamic_mask(local_context_ids, polarities)
-                cdm_context_out = torch.mul(local_context_out, cdm_vec)
-                cdw_vec = self.feature_dynamic_weighted(local_context_ids, polarities)
-                cdw_context_out = torch.mul(local_context_out, cdw_vec)
-                cat_out = torch.cat((global_context_out, cdw_context_out, cdm_context_out), dim=-1)
-                cat_out = self.linear_triple(cat_out)
-            sa_out = self.SA2(cat_out)
-            pooled_out = self.pooler(sa_out)
+                cdm_p_vec = self.polarity_feature_dynamic_mask(local_context_ids, polarities)
+                cdm_p_context_out = torch.mul(local_context_out, cdm_p_vec)
+                cdw_p_vec = self.polarity_feature_dynamic_weighted(local_context_ids, polarities)
+                cdw_p_context_out = torch.mul(local_context_out, cdw_p_vec)
+                cat_p_out = torch.cat((global_context_out, cdw_p_context_out, cdm_p_context_out), dim=-1)
+                cat_p_out = self.linear_triple(cat_p_out)
+                cdm_e_vec = self.emotions_feature_dynamic_mask(local_context_ids, emotions)
+                cdm_e_context_out = torch.mul(local_context_out, cdm_e_vec)
+                cdw_e_vec = self.emotions_feature_dynamic_weighted(local_context_ids, emotions)
+                cdw_e_context_out = torch.mul(local_context_out, cdw_e_vec)
+                cat_e_out = torch.cat((global_context_out, cdw_e_context_out, cdm_e_context_out), dim=-1)
+                cat_e_out = self.linear_triple(cat_e_out)
+            sa_p_out = self.SA2(cat_p_out)
+            sa_e_out = self.SA2(cat_e_out)
+            pooled_p_out = self.pooler(sa_p_out)
+            pooled_e_out = self.pooler(sa_e_out)
         else:
-            pooled_out = self.pooler(global_context_out)
-        pooled_out = self.dropout(pooled_out)
-        apc_logits = self.dense(pooled_out)
-        emotion_logits = self.emotion_classifier(pooled_out)
+            pooled_p_out = self.pooler(global_context_out)
+            pooled_e_out = self.pooler(global_context_out)
+        pooled_p_out = self.dropout(pooled_p_out)
+        pooled_e_out = self.dropout(pooled_e_out)
+        apc_logits = self.dense(pooled_p_out)
+        emotion_logits = self.emotion_classifier(pooled_e_out)
 
         if labels is not None:
             loss_fct = CrossEntropyLoss(ignore_index=0)

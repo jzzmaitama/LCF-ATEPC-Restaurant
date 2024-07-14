@@ -69,13 +69,6 @@ def main(config):
 
     tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case=True)
     train_examples = processor.get_train_examples(args.data_dir)
-    # print('check',train_examples[0].text_a)
-    # print('check1',train_examples[0].text_b)
-    # print('check2',train_examples[0].polarity)
-    # print('check3',train_examples[0].emotion)
-    # print('check4',train_examples[0].aspect_label)
-    # print('check5',train_examples[0].sentence_label)
-    # print('check6',train_examples[0].guid)
     eval_examples = processor.get_test_examples(args.data_dir)
     num_train_optimization_steps = int(
         len(train_examples) / args.train_batch_size / args.gradient_accumulation_steps) * args.num_train_epochs
@@ -197,7 +190,7 @@ def main(config):
             tmps = report.split()
             ate_result = round(float(tmps[7]) * 100, 2)
         if eval_emotion:
-            emotion_f1 = f1_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(), labels=[0, 1, 2], average='macro')
+            emotion_f1 = f1_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(), labels=[0, 1, 2,3,4,5], average='macro')
             emotion_acc = accuracy_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(),)
             emotion_acc = round(float(emotion_acc) * 100, 2)
             emotion_f1 = round(float(emotion_f1) * 100, 2)
