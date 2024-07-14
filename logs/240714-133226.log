@@ -1,7 +1,7 @@
-log file: logs/240708-132006.log
+log file: logs/240714-133226.log
 --------------------------------------------------------------------------------
 Config 1 (totally 1 configs)
-No.1 training process of 5
+No.1 training process of 2
 >>> dataset: restaurant
 >>> output_dir: output
 >>> SRD: 5
@@ -11,7 +11,7 @@ No.1 training process of 5
 >>> local_context_focus: fusion
 >>> num_train_epochs: 1.0
 >>> train_batch_size: 6
->>> dropout: 0.1
+>>> dropout: 0.0
 >>> max_seq_length: 25
 >>> eval_batch_size: 32
 >>> eval_steps: 20
@@ -32,11 +32,5 @@ Train 1 Epoch1
 Train 1 Epoch1, Evaluate for atepc_datasets/restaurant
 APC_test_acc: 61.73(max: 61.73)  APC_test_f1: 24.58(max: 24.58)
 ATE_test_f1: 0.0(max:0)
-Emotion_test_acc: 65.05(max: 65.05) Emotion_test_f1: 26.27(max: 26.27)
-********************************************************************************
-********************************************************************************
-Train 1 Epoch1, Evaluate for atepc_datasets/restaurant
-APC_test_acc: 61.73(max: 61.73)  APC_test_f1: 24.58(max: 24.58)
-ATE_test_f1: 0.0(max:0)
-Emotion_test_acc: 65.05(max: 65.05) Emotion_test_f1: 26.27(max: 26.27)
+Emotion_test_acc: 65.05(max: 65.05) Emotion_test_f1: 13.14(max: 13.14)
 ********************************************************************************

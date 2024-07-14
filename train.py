@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-# file: train.py
-# Copyright (C) 2019. All Rights Reserved.
-
 import argparse
 import json
 import logging
@@ -9,20 +5,17 @@ import os, sys
 import random
 from sklearn.metrics import f1_score
 from time import strftime, localtime
-
 import numpy as np
 import torch
 import torch.nn.functional as F
 from transformers.optimization import AdamW
 from transformers.models.bert.modeling_bert import BertModel
 from transformers import BertTokenizer
-# from pytorch_transformers.optimization import AdamW
-# from pytorch_transformers.tokenization_bert import BertTokenizer
-# from pytorch_transformers.modeling_bert import BertModel
 from seqeval.metrics import classification_report, accuracy_score
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler, TensorDataset)
 from utils.data_utils import ATEPCProcessor, convert_examples_to_features
 from model.lcf_atepc import LCF_ATEPC
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -76,13 +69,6 @@ def main(config):
 
     tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case=True)
     train_examples = processor.get_train_examples(args.data_dir)
-    # print('check',train_examples[0].text_a)
-    # print('check1',train_examples[0].text_b)
-    # print('check2',train_examples[0].polarity)
-    # print('check3',train_examples[0].emotion)
-    # print('check4',train_examples[0].aspect_label)
-    # print('check5',train_examples[0].sentence_label)
-    # print('check6',train_examples[0].guid)
     eval_examples = processor.get_test_examples(args.data_dir)
     num_train_optimization_steps = int(
         len(train_examples) / args.train_batch_size / args.gradient_accumulation_steps) * args.num_train_epochs
@@ -204,7 +190,7 @@ def main(config):
             tmps = report.split()
             ate_result = round(float(tmps[7]) * 100, 2)
         if eval_emotion:
-            emotion_f1 = f1_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(), labels=[0, 1, 2], average='macro')
+            emotion_f1 = f1_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(), labels=[0, 1, 2,3,4,5], average='macro')
             emotion_acc = accuracy_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(),)
             emotion_acc = round(float(emotion_acc) * 100, 2)
             emotion_f1 = round(float(emotion_f1) * 100, 2)
