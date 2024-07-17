@@ -44,6 +44,9 @@ class LCF_ATEPC(BertForTokenClassification):
         self.SA2 = SelfAttention(config, args)
         self.linear_double = nn.Linear(768 * 2, 768)
         self.linear_triple = nn.Linear(768 * 3, 768)
+        self.linear_concat = nn.Linear(768 * 5, 768)
+
+
 
     def get_batch_token_labels_bert_base_indices(self, labels):
         if labels is None:
@@ -150,7 +153,7 @@ class LCF_ATEPC(BertForTokenClassification):
                 if emotion_labels[i] != -1:
                     emotion_labels_tensor = torch.tensor(emotion_labels[i],dtype=torch.float32)
                     transformed_label = torch.sigmoid(emotion_labels_tensor)
-                    weighted_text_raw_indices[text_i][i] *= transformed_label.item()  # Adjust weights based on transform emotion labels
+                    weighted_text_raw_indices[text_i][i] *= transformed_label.item()
 
         weighted_text_raw_indices = torch.from_numpy(weighted_text_raw_indices)
         return weighted_text_raw_indices.to(self.args.device)
@@ -160,16 +163,13 @@ class LCF_ATEPC(BertForTokenClassification):
         emotion_ids = emotions.detach().cpu().numpy()
         masked_text_raw_indices = np.ones((text_local_indices.size(0), text_local_indices.size(1), 768),
                                           dtype=np.float32)
-
         for text_i in range(len(text_ids)):
             emotion_labels = emotion_ids[text_i]
             text_len = np.flatnonzero(text_ids[text_i])[-1] + 1
-
             # Mask out tokens without emotion labels
             for i in range(text_len):
                 if emotion_labels[i] == -1:
                     masked_text_raw_indices[text_i][i] = np.zeros((768,), dtype=np.float32)
-
         masked_text_raw_indices = torch.from_numpy(masked_text_raw_indices)
         return masked_text_raw_indices.to(self.args.device)
     def get_ids_for_local_context_extractor(self, text_indices):
@@ -223,9 +223,9 @@ class LCF_ATEPC(BertForTokenClassification):
                 cdm_e_context_out = torch.mul(local_context_out, cdm_e_vec)
                 cdm_p_context_out = self.SA1(cdm_p_context_out)
                 cdm_e_context_out = self.SA1(cdm_e_context_out)
-                cat_p_out = torch.cat((global_context_out, cdm_p_context_out), dim=-1)
+                cat_p_out = torch.cat((global_context_out, cdm_p_context_out,cdm_e_context_out), dim=-1)
                 cat_e_out = torch.cat((global_context_out, cdm_e_context_out), dim=-1)
-                cat_p_out = self.linear_double(cat_p_out)
+                cat_p_out = self.linear_triple(cat_p_out)
                 cat_e_out = self.linear_double(cat_e_out)
             elif 'cdw' in self.args.local_context_focus:
                 cdw_p_vec = self.polarity_feature_dynamic_weighted(local_context_ids, polarities)
@@ -234,23 +234,24 @@ class LCF_ATEPC(BertForTokenClassification):
                 cdw_e_context_out = torch.mul(local_context_out, cdw_e_vec)
                 cdw_p_context_out = self.SA1(cdw_p_context_out)
                 cdw_e_context_out = self.SA1(cdw_e_context_out)
-                cat_p_out = torch.cat((global_context_out, cdw_p_context_out), dim=-1)
+                cat_p_out = torch.cat((global_context_out, cdw_p_context_out,cdw_e_context_out), dim=-1)
                 cat_e_out = torch.cat((global_context_out, cdw_e_context_out), dim=-1)
-                cat_p_out = self.linear_double(cat_p_out)
+                cat_p_out = self.linear_triple(cat_p_out)
                 cat_e_out = self.linear_double(cat_e_out)
             elif 'fusion' in self.args.local_context_focus:
-                cdm_p_vec = self.polarity_feature_dynamic_mask(local_context_ids, polarities)
-                cdm_p_context_out = torch.mul(local_context_out, cdm_p_vec)
-                cdw_p_vec = self.polarity_feature_dynamic_weighted(local_context_ids, polarities)
-                cdw_p_context_out = torch.mul(local_context_out, cdw_p_vec)
-                cat_p_out = torch.cat((global_context_out, cdw_p_context_out, cdm_p_context_out), dim=-1)
-                cat_p_out = self.linear_triple(cat_p_out)
                 cdm_e_vec = self.emotions_feature_dynamic_mask(local_context_ids, emotions)
                 cdm_e_context_out = torch.mul(local_context_out, cdm_e_vec)
                 cdw_e_vec = self.emotions_feature_dynamic_weighted(local_context_ids, emotions)
                 cdw_e_context_out = torch.mul(local_context_out, cdw_e_vec)
                 cat_e_out = torch.cat((global_context_out, cdw_e_context_out, cdm_e_context_out), dim=-1)
                 cat_e_out = self.linear_triple(cat_e_out)
+                cdm_p_vec = self.polarity_feature_dynamic_mask(local_context_ids, polarities)
+                cdm_p_context_out = torch.mul(local_context_out, cdm_p_vec)
+                cdw_p_vec = self.polarity_feature_dynamic_weighted(local_context_ids, polarities)
+                cdw_p_context_out = torch.mul(local_context_out, cdw_p_vec)
+                cat_p_out = torch.cat((global_context_out, cdw_p_context_out, cdm_p_context_out,cdw_e_context_out,cdm_e_context_out), dim=-1)
+                cat_p_out = self.linear_concat(cat_p_out)
+
             sa_p_out = self.SA2(cat_p_out)
             sa_e_out = self.SA2(cat_e_out)
             pooled_p_out = self.pooler(sa_p_out)
