@@ -1,3 +1,4 @@
+#test
 import argparse
 import json
 import logging
@@ -180,17 +181,18 @@ def main(config):
         if eval_APC:
             test_acc = n_test_correct / n_test_total
             test_f1 = f1_score(torch.argmax(test_apc_logits_all, -1).cpu(), test_polarities_all.cpu(),
-                                   labels=[0, 1, 2], average='macro')
+                                   labels=[0, 1, 2], average='weighted')
             test_acc = round(test_acc * 100, 2)
             test_f1 = round(test_f1 * 100, 2)
             apc_result = {'max_apc_test_acc': test_acc, 'max_apc_test_f1': test_f1}
 
         if eval_ATE:
             report = classification_report(y_true, y_pred, digits=4)
+
             tmps = report.split()
             ate_result = round(float(tmps[7]) * 100, 2)
         if eval_emotion:
-            emotion_f1 = f1_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(), labels=[0, 1, 2], average='macro')
+            emotion_f1 = f1_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(), labels=[0, 1, 2], average='weighted')
             emotion_acc = accuracy_score(torch.argmax(test_emotion_logits_all,-1).cpu(),test_emotions_all.cpu(),)
             emotion_acc = round(float(emotion_acc) * 100, 2)
             emotion_f1 = round(float(emotion_f1) * 100, 2)
@@ -347,7 +349,7 @@ if __name__ == "__main__":
     # device = torch.device("cuda" + str(index) if torch.cuda.is_available() else "cpu")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     exp_configs = parse_experiments(experiments.config_path)
-    n = 2
+    n = 5
     for config in exp_configs:
         logger.info('-' * 80)
         logger.info('Config {} (totally {} configs)'.format(exp_configs.index(config) + 1, len(exp_configs)))
