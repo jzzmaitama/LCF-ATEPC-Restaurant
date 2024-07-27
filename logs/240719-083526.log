@@ -1,0 +1,863 @@
+log file: logs/240719-083526.log
+--------------------------------------------------------------------------------
+Config 1 (totally 1 configs)
+No.1 training process of 5
+>>> dataset: restaurant
+>>> output_dir: output
+>>> SRD: 5
+>>> learning_rate: 3e-05
+>>> use_unique_bert: True
+>>> use_bert_spc: False
+>>> local_context_focus: cdm
+>>> num_train_epochs: 5.0
+>>> train_batch_size: 16
+>>> dropout: 0.0
+>>> max_seq_length: 80
+>>> eval_batch_size: 32
+>>> eval_steps: 20
+>>> gradient_accumulation_steps: 1
+>>> config_path: experiments.json
+>>> device: cpu
+>>> seed: 1
+>>> bert_model: bert-base-uncased
+>>> data_dir: atepc_datasets/restaurant
+***** Running training *****
+  Num examples = 3545
+  Batch size = 16
+  Num steps = 1105
+################################################################################
+Train 1 Epoch1
+################################################################################
+################################################################################
+Train 1 Epoch2
+################################################################################
+################################################################################
+Train 1 Epoch3
+################################################################################
+################################################################################
+Train 1 Epoch4
+################################################################################
+********************************************************************************
+Train 1 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 76.78(max: 76.78)  APC_test_f1: 61.11(max: 61.11)
+ATE_test_f1: 56.75(max:56.75)
+Emotion_test_acc: 81.3(max: 81.3) Emotion_test_f1: 53.49(max: 53.49)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 76.9(max: 76.9)  APC_test_f1: 59.09(max: 61.11)
+ATE_test_f1: 57.53(max:57.53)
+Emotion_test_acc: 82.32(max: 82.32) Emotion_test_f1: 54.62(max: 54.62)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 78.21(max: 78.21)  APC_test_f1: 60.47(max: 61.11)
+ATE_test_f1: 57.54(max:57.54)
+Emotion_test_acc: 82.99(max: 82.99) Emotion_test_f1: 55.24(max: 55.24)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 78.13(max: 78.21)  APC_test_f1: 65.01(max: 65.01)
+ATE_test_f1: 58.02(max:58.02)
+Emotion_test_acc: 82.66(max: 82.99) Emotion_test_f1: 55.09(max: 55.24)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 76.99(max: 78.21)  APC_test_f1: 62.38(max: 65.01)
+ATE_test_f1: 58.9(max:58.9)
+Emotion_test_acc: 81.3(max: 82.99) Emotion_test_f1: 53.69(max: 55.24)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 77.54(max: 78.21)  APC_test_f1: 64.16(max: 65.01)
+ATE_test_f1: 57.35(max:58.9)
+Emotion_test_acc: 83.33(max: 83.33) Emotion_test_f1: 55.65(max: 55.65)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 78.0(max: 78.21)  APC_test_f1: 64.26(max: 65.01)
+ATE_test_f1: 58.64(max:58.9)
+Emotion_test_acc: 83.67(max: 83.67) Emotion_test_f1: 56.01(max: 56.01)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 79.23(max: 79.23)  APC_test_f1: 66.45(max: 66.45)
+ATE_test_f1: 58.43(max:58.9)
+Emotion_test_acc: 84.35(max: 84.35) Emotion_test_f1: 56.57(max: 56.57)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 78.05(max: 79.23)  APC_test_f1: 63.11(max: 66.45)
+ATE_test_f1: 57.35(max:58.9)
+Emotion_test_acc: 82.4(max: 84.35) Emotion_test_f1: 54.54(max: 56.57)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 77.28(max: 79.23)  APC_test_f1: 62.49(max: 66.45)
+ATE_test_f1: 57.14(max:58.9)
+Emotion_test_acc: 80.96(max: 84.35) Emotion_test_f1: 52.88(max: 56.57)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 78.09(max: 79.23)  APC_test_f1: 64.12(max: 66.45)
+ATE_test_f1: 57.26(max:58.9)
+Emotion_test_acc: 83.25(max: 84.35) Emotion_test_f1: 55.39(max: 56.57)
+********************************************************************************
+################################################################################
+Train 1 Epoch5
+################################################################################
+********************************************************************************
+Train 1 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 78.64(max: 79.23)  APC_test_f1: 66.1(max: 66.45)
+ATE_test_f1: 57.7(max:58.9)
+Emotion_test_acc: 83.08(max: 84.35) Emotion_test_f1: 55.12(max: 56.57)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 77.92(max: 79.23)  APC_test_f1: 62.03(max: 66.45)
+ATE_test_f1: 58.63(max:58.9)
+Emotion_test_acc: 82.91(max: 84.35) Emotion_test_f1: 55.02(max: 56.57)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 79.4(max: 79.4)  APC_test_f1: 63.02(max: 66.45)
+ATE_test_f1: 58.52(max:58.9)
+Emotion_test_acc: 84.09(max: 84.35) Emotion_test_f1: 56.2(max: 56.57)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 79.4(max: 79.4)  APC_test_f1: 69.9(max: 69.9)
+ATE_test_f1: 57.04(max:58.9)
+Emotion_test_acc: 84.01(max: 84.35) Emotion_test_f1: 56.35(max: 56.57)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 79.57(max: 79.57)  APC_test_f1: 67.77(max: 69.9)
+ATE_test_f1: 62.72(max:62.72)
+Emotion_test_acc: 84.35(max: 84.35) Emotion_test_f1: 56.37(max: 56.57)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 79.44(max: 79.57)  APC_test_f1: 67.85(max: 69.9)
+ATE_test_f1: 58.65(max:62.72)
+Emotion_test_acc: 83.67(max: 84.35) Emotion_test_f1: 55.68(max: 56.57)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 79.57(max: 79.57)  APC_test_f1: 69.01(max: 69.9)
+ATE_test_f1: 58.24(max:62.72)
+Emotion_test_acc: 84.09(max: 84.35) Emotion_test_f1: 56.45(max: 56.57)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 80.5(max: 80.5)  APC_test_f1: 70.15(max: 70.15)
+ATE_test_f1: 60.53(max:62.72)
+Emotion_test_acc: 85.11(max: 85.11) Emotion_test_f1: 57.02(max: 57.02)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 79.65(max: 80.5)  APC_test_f1: 65.68(max: 70.15)
+ATE_test_f1: 56.67(max:62.72)
+Emotion_test_acc: 84.86(max: 85.11) Emotion_test_f1: 56.67(max: 57.02)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 80.96(max: 80.96)  APC_test_f1: 71.45(max: 71.45)
+ATE_test_f1: 56.78(max:62.72)
+Emotion_test_acc: 84.69(max: 85.11) Emotion_test_f1: 56.47(max: 57.02)
+********************************************************************************
+********************************************************************************
+Train 1 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 80.12(max: 80.96)  APC_test_f1: 68.53(max: 71.45)
+ATE_test_f1: 59.1(max:62.72)
+Emotion_test_acc: 85.36(max: 85.36) Emotion_test_f1: 59.93(max: 59.93)
+********************************************************************************
+max_ate_test_f1:62.72 max_apc_test_acc: 80.96	max_apc_test_f1: 71.45 	max_emotion_test_acc: 85.36	max_emotion_test_f1: 59.93
+No.2 training process of 5
+>>> dataset: restaurant
+>>> output_dir: output
+>>> SRD: 5
+>>> learning_rate: 3e-05
+>>> use_unique_bert: True
+>>> use_bert_spc: False
+>>> local_context_focus: cdm
+>>> num_train_epochs: 5.0
+>>> train_batch_size: 16
+>>> dropout: 0.0
+>>> max_seq_length: 80
+>>> eval_batch_size: 32
+>>> eval_steps: 20
+>>> gradient_accumulation_steps: 1
+>>> config_path: experiments.json
+>>> device: cpu
+>>> seed: 2
+>>> bert_model: bert-base-uncased
+>>> data_dir: atepc_datasets/restaurant
+***** Running training *****
+  Num examples = 3545
+  Batch size = 16
+  Num steps = 1105
+################################################################################
+Train 2 Epoch1
+################################################################################
+################################################################################
+Train 2 Epoch2
+################################################################################
+################################################################################
+Train 2 Epoch3
+################################################################################
+################################################################################
+Train 2 Epoch4
+################################################################################
+********************************************************************************
+Train 2 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 82.28(max: 82.28)  APC_test_f1: 69.89(max: 69.89)
+ATE_test_f1: 57.28(max:57.28)
+Emotion_test_acc: 86.8(max: 86.8) Emotion_test_f1: 58.11(max: 58.11)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 81.43(max: 82.28)  APC_test_f1: 64.64(max: 69.89)
+ATE_test_f1: 58.84(max:58.84)
+Emotion_test_acc: 87.23(max: 87.23) Emotion_test_f1: 58.53(max: 58.53)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.08(max: 83.08)  APC_test_f1: 70.79(max: 70.79)
+ATE_test_f1: 58.43(max:58.84)
+Emotion_test_acc: 87.06(max: 87.23) Emotion_test_f1: 58.34(max: 58.53)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 82.87(max: 83.08)  APC_test_f1: 72.44(max: 72.44)
+ATE_test_f1: 61.12(max:61.12)
+Emotion_test_acc: 87.06(max: 87.23) Emotion_test_f1: 58.5(max: 58.53)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.63(max: 83.63)  APC_test_f1: 73.19(max: 73.19)
+ATE_test_f1: 60.13(max:61.12)
+Emotion_test_acc: 87.48(max: 87.48) Emotion_test_f1: 58.83(max: 58.83)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.38(max: 83.63)  APC_test_f1: 74.48(max: 74.48)
+ATE_test_f1: 59.69(max:61.12)
+Emotion_test_acc: 87.9(max: 87.9) Emotion_test_f1: 59.12(max: 59.12)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 81.47(max: 83.63)  APC_test_f1: 71.09(max: 74.48)
+ATE_test_f1: 59.0(max:61.12)
+Emotion_test_acc: 87.48(max: 87.9) Emotion_test_f1: 58.92(max: 59.12)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 81.56(max: 83.63)  APC_test_f1: 69.85(max: 74.48)
+ATE_test_f1: 60.0(max:61.12)
+Emotion_test_acc: 87.65(max: 87.9) Emotion_test_f1: 59.04(max: 59.12)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.5(max: 83.63)  APC_test_f1: 74.15(max: 74.48)
+ATE_test_f1: 60.8(max:61.12)
+Emotion_test_acc: 87.65(max: 87.9) Emotion_test_f1: 58.87(max: 59.12)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 82.23(max: 83.63)  APC_test_f1: 72.49(max: 74.48)
+ATE_test_f1: 60.17(max:61.12)
+Emotion_test_acc: 87.56(max: 87.9) Emotion_test_f1: 58.96(max: 59.12)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.08(max: 83.63)  APC_test_f1: 72.54(max: 74.48)
+ATE_test_f1: 59.83(max:61.12)
+Emotion_test_acc: 87.82(max: 87.9) Emotion_test_f1: 58.85(max: 59.12)
+********************************************************************************
+################################################################################
+Train 2 Epoch5
+################################################################################
+********************************************************************************
+Train 2 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.04(max: 83.63)  APC_test_f1: 71.51(max: 74.48)
+ATE_test_f1: 58.45(max:61.12)
+Emotion_test_acc: 87.73(max: 87.9) Emotion_test_f1: 58.82(max: 59.12)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.67(max: 83.67)  APC_test_f1: 73.14(max: 74.48)
+ATE_test_f1: 61.57(max:61.57)
+Emotion_test_acc: 87.82(max: 87.9) Emotion_test_f1: 59.05(max: 59.12)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.5(max: 83.67)  APC_test_f1: 73.94(max: 74.48)
+ATE_test_f1: 62.49(max:62.49)
+Emotion_test_acc: 87.39(max: 87.9) Emotion_test_f1: 58.83(max: 59.12)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.04(max: 83.67)  APC_test_f1: 74.81(max: 74.81)
+ATE_test_f1: 60.95(max:62.49)
+Emotion_test_acc: 87.31(max: 87.9) Emotion_test_f1: 58.79(max: 59.12)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.21(max: 83.67)  APC_test_f1: 73.72(max: 74.81)
+ATE_test_f1: 62.53(max:62.53)
+Emotion_test_acc: 87.99(max: 87.99) Emotion_test_f1: 59.24(max: 59.24)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 81.35(max: 83.67)  APC_test_f1: 72.21(max: 74.81)
+ATE_test_f1: 61.26(max:62.53)
+Emotion_test_acc: 87.39(max: 87.99) Emotion_test_f1: 58.52(max: 59.24)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 82.32(max: 83.67)  APC_test_f1: 72.03(max: 74.81)
+ATE_test_f1: 59.46(max:62.53)
+Emotion_test_acc: 86.63(max: 87.99) Emotion_test_f1: 58.07(max: 59.24)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.84(max: 83.84)  APC_test_f1: 73.5(max: 74.81)
+ATE_test_f1: 60.6(max:62.53)
+Emotion_test_acc: 87.73(max: 87.99) Emotion_test_f1: 58.86(max: 59.24)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.71(max: 83.84)  APC_test_f1: 74.38(max: 74.81)
+ATE_test_f1: 60.3(max:62.53)
+Emotion_test_acc: 87.82(max: 87.99) Emotion_test_f1: 60.33(max: 60.33)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.25(max: 83.84)  APC_test_f1: 74.47(max: 74.81)
+ATE_test_f1: 60.11(max:62.53)
+Emotion_test_acc: 87.06(max: 87.99) Emotion_test_f1: 60.8(max: 60.8)
+********************************************************************************
+********************************************************************************
+Train 2 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 81.51(max: 83.84)  APC_test_f1: 70.27(max: 74.81)
+ATE_test_f1: 60.83(max:62.53)
+Emotion_test_acc: 86.13(max: 87.99) Emotion_test_f1: 57.51(max: 60.8)
+********************************************************************************
+max_ate_test_f1:62.72 max_apc_test_acc: 83.84	max_apc_test_f1: 74.81 	max_emotion_test_acc: 87.99	max_emotion_test_f1: 60.8
+No.3 training process of 5
+>>> dataset: restaurant
+>>> output_dir: output
+>>> SRD: 5
+>>> learning_rate: 3e-05
+>>> use_unique_bert: True
+>>> use_bert_spc: False
+>>> local_context_focus: cdm
+>>> num_train_epochs: 5.0
+>>> train_batch_size: 16
+>>> dropout: 0.0
+>>> max_seq_length: 80
+>>> eval_batch_size: 32
+>>> eval_steps: 20
+>>> gradient_accumulation_steps: 1
+>>> config_path: experiments.json
+>>> device: cpu
+>>> seed: 3
+>>> bert_model: bert-base-uncased
+>>> data_dir: atepc_datasets/restaurant
+***** Running training *****
+  Num examples = 3545
+  Batch size = 16
+  Num steps = 1105
+################################################################################
+Train 3 Epoch1
+################################################################################
+################################################################################
+Train 3 Epoch2
+################################################################################
+################################################################################
+Train 3 Epoch3
+################################################################################
+################################################################################
+Train 3 Epoch4
+################################################################################
+********************************************************************************
+Train 3 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 59.81(max: 59.81)  APC_test_f1: 24.39(max: 24.39)
+ATE_test_f1: 0.0(max:0)
+Emotion_test_acc: 62.86(max: 62.86) Emotion_test_f1: 25.89(max: 25.89)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 59.81(max: 59.81)  APC_test_f1: 24.39(max: 24.39)
+ATE_test_f1: 0.0(max:0)
+Emotion_test_acc: 62.86(max: 62.86) Emotion_test_f1: 25.89(max: 25.89)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 61.55(max: 61.55)  APC_test_f1: 32.24(max: 32.24)
+ATE_test_f1: 0.95(max:0.95)
+Emotion_test_acc: 64.55(max: 64.55) Emotion_test_f1: 30.04(max: 30.04)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 61.55(max: 61.55)  APC_test_f1: 33.35(max: 33.35)
+ATE_test_f1: 3.3(max:3.3)
+Emotion_test_acc: 64.13(max: 64.55) Emotion_test_f1: 29.37(max: 30.04)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 59.86(max: 61.55)  APC_test_f1: 24.12(max: 33.35)
+ATE_test_f1: 1.47(max:3.3)
+Emotion_test_acc: 63.03(max: 64.55) Emotion_test_f1: 25.77(max: 30.04)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 60.28(max: 61.55)  APC_test_f1: 26.63(max: 33.35)
+ATE_test_f1: 0.95(max:3.3)
+Emotion_test_acc: 63.11(max: 64.55) Emotion_test_f1: 26.12(max: 30.04)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 59.86(max: 61.55)  APC_test_f1: 24.36(max: 33.35)
+ATE_test_f1: 0.75(max:3.3)
+Emotion_test_acc: 63.03(max: 64.55) Emotion_test_f1: 25.94(max: 30.04)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 62.39(max: 62.39)  APC_test_f1: 38.15(max: 38.15)
+ATE_test_f1: 0.95(max:3.3)
+Emotion_test_acc: 65.57(max: 65.57) Emotion_test_f1: 37.76(max: 37.76)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 60.74(max: 62.39)  APC_test_f1: 30.1(max: 38.15)
+ATE_test_f1: 2.07(max:3.3)
+Emotion_test_acc: 63.28(max: 65.57) Emotion_test_f1: 26.96(max: 37.76)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 62.1(max: 62.39)  APC_test_f1: 36.94(max: 38.15)
+ATE_test_f1: 1.15(max:3.3)
+Emotion_test_acc: 63.96(max: 65.57) Emotion_test_f1: 28.77(max: 37.76)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 60.49(max: 62.39)  APC_test_f1: 27.52(max: 38.15)
+ATE_test_f1: 5.93(max:5.93)
+Emotion_test_acc: 63.37(max: 65.57) Emotion_test_f1: 26.84(max: 37.76)
+********************************************************************************
+################################################################################
+Train 3 Epoch5
+################################################################################
+********************************************************************************
+Train 3 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 59.9(max: 62.39)  APC_test_f1: 24.39(max: 38.15)
+ATE_test_f1: 1.02(max:5.93)
+Emotion_test_acc: 63.03(max: 65.57) Emotion_test_f1: 25.94(max: 37.76)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 60.03(max: 62.39)  APC_test_f1: 25.15(max: 38.15)
+ATE_test_f1: 2.34(max:5.93)
+Emotion_test_acc: 63.11(max: 65.57) Emotion_test_f1: 26.3(max: 37.76)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 61.63(max: 62.39)  APC_test_f1: 31.19(max: 38.15)
+ATE_test_f1: 4.11(max:5.93)
+Emotion_test_acc: 64.81(max: 65.57) Emotion_test_f1: 31.02(max: 37.76)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 59.86(max: 62.39)  APC_test_f1: 24.12(max: 38.15)
+ATE_test_f1: 0.0(max:5.93)
+Emotion_test_acc: 63.03(max: 65.57) Emotion_test_f1: 25.77(max: 37.76)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 59.86(max: 62.39)  APC_test_f1: 24.12(max: 38.15)
+ATE_test_f1: 0.0(max:5.93)
+Emotion_test_acc: 63.03(max: 65.57) Emotion_test_f1: 25.77(max: 37.76)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 59.86(max: 62.39)  APC_test_f1: 24.12(max: 38.15)
+ATE_test_f1: 0.0(max:5.93)
+Emotion_test_acc: 63.03(max: 65.57) Emotion_test_f1: 25.77(max: 37.76)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 59.86(max: 62.39)  APC_test_f1: 24.12(max: 38.15)
+ATE_test_f1: 0.0(max:5.93)
+Emotion_test_acc: 63.03(max: 65.57) Emotion_test_f1: 25.77(max: 37.76)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 59.86(max: 62.39)  APC_test_f1: 24.12(max: 38.15)
+ATE_test_f1: 0.0(max:5.93)
+Emotion_test_acc: 63.03(max: 65.57) Emotion_test_f1: 25.77(max: 37.76)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 59.86(max: 62.39)  APC_test_f1: 24.12(max: 38.15)
+ATE_test_f1: 0.0(max:5.93)
+Emotion_test_acc: 63.03(max: 65.57) Emotion_test_f1: 25.77(max: 37.76)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 59.86(max: 62.39)  APC_test_f1: 24.12(max: 38.15)
+ATE_test_f1: 0.0(max:5.93)
+Emotion_test_acc: 63.03(max: 65.57) Emotion_test_f1: 25.77(max: 37.76)
+********************************************************************************
+********************************************************************************
+Train 3 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 59.86(max: 62.39)  APC_test_f1: 24.12(max: 38.15)
+ATE_test_f1: 0.0(max:5.93)
+Emotion_test_acc: 63.03(max: 65.57) Emotion_test_f1: 25.77(max: 37.76)
+********************************************************************************
+max_ate_test_f1:62.72 max_apc_test_acc: 83.84	max_apc_test_f1: 74.81 	max_emotion_test_acc: 87.99	max_emotion_test_f1: 60.8
+No.4 training process of 5
+>>> dataset: restaurant
+>>> output_dir: output
+>>> SRD: 5
+>>> learning_rate: 3e-05
+>>> use_unique_bert: True
+>>> use_bert_spc: False
+>>> local_context_focus: cdm
+>>> num_train_epochs: 5.0
+>>> train_batch_size: 16
+>>> dropout: 0.0
+>>> max_seq_length: 80
+>>> eval_batch_size: 32
+>>> eval_steps: 20
+>>> gradient_accumulation_steps: 1
+>>> config_path: experiments.json
+>>> device: cpu
+>>> seed: 4
+>>> bert_model: bert-base-uncased
+>>> data_dir: atepc_datasets/restaurant
+***** Running training *****
+  Num examples = 3545
+  Batch size = 16
+  Num steps = 1105
+################################################################################
+Train 4 Epoch1
+################################################################################
+################################################################################
+Train 4 Epoch2
+################################################################################
+################################################################################
+Train 4 Epoch3
+################################################################################
+################################################################################
+Train 4 Epoch4
+################################################################################
+********************************************************************************
+Train 4 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 82.99(max: 82.99)  APC_test_f1: 71.97(max: 71.97)
+ATE_test_f1: 61.0(max:61.0)
+Emotion_test_acc: 87.23(max: 87.23) Emotion_test_f1: 58.56(max: 58.56)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 81.51(max: 82.99)  APC_test_f1: 65.21(max: 71.97)
+ATE_test_f1: 62.61(max:62.61)
+Emotion_test_acc: 86.8(max: 87.23) Emotion_test_f1: 58.32(max: 58.56)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 82.19(max: 82.99)  APC_test_f1: 72.58(max: 72.58)
+ATE_test_f1: 61.7(max:62.61)
+Emotion_test_acc: 85.19(max: 87.23) Emotion_test_f1: 56.72(max: 58.56)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 82.53(max: 82.99)  APC_test_f1: 74.2(max: 74.2)
+ATE_test_f1: 62.79(max:62.79)
+Emotion_test_acc: 86.29(max: 87.23) Emotion_test_f1: 57.9(max: 58.56)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.25(max: 83.25)  APC_test_f1: 75.39(max: 75.39)
+ATE_test_f1: 64.2(max:64.2)
+Emotion_test_acc: 86.55(max: 87.23) Emotion_test_f1: 58.25(max: 58.56)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.25(max: 83.25)  APC_test_f1: 74.92(max: 75.39)
+ATE_test_f1: 62.0(max:64.2)
+Emotion_test_acc: 87.48(max: 87.48) Emotion_test_f1: 58.73(max: 58.73)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 82.02(max: 83.25)  APC_test_f1: 72.41(max: 75.39)
+ATE_test_f1: 62.34(max:64.2)
+Emotion_test_acc: 86.8(max: 87.48) Emotion_test_f1: 58.34(max: 58.73)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 81.73(max: 83.25)  APC_test_f1: 71.76(max: 75.39)
+ATE_test_f1: 64.02(max:64.2)
+Emotion_test_acc: 87.06(max: 87.48) Emotion_test_f1: 58.55(max: 58.73)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 82.7(max: 83.25)  APC_test_f1: 71.97(max: 75.39)
+ATE_test_f1: 63.17(max:64.2)
+Emotion_test_acc: 87.23(max: 87.48) Emotion_test_f1: 58.6(max: 58.73)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 82.95(max: 83.25)  APC_test_f1: 72.72(max: 75.39)
+ATE_test_f1: 68.43(max:68.43)
+Emotion_test_acc: 87.99(max: 87.99) Emotion_test_f1: 59.22(max: 59.22)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.54(max: 83.54)  APC_test_f1: 74.52(max: 75.39)
+ATE_test_f1: 61.44(max:68.43)
+Emotion_test_acc: 87.73(max: 87.99) Emotion_test_f1: 59.0(max: 59.22)
+********************************************************************************
+################################################################################
+Train 4 Epoch5
+################################################################################
+********************************************************************************
+Train 4 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.33(max: 83.54)  APC_test_f1: 74.01(max: 75.39)
+ATE_test_f1: 60.49(max:68.43)
+Emotion_test_acc: 87.73(max: 87.99) Emotion_test_f1: 58.97(max: 59.22)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 84.52(max: 84.52)  APC_test_f1: 73.88(max: 75.39)
+ATE_test_f1: 64.22(max:68.43)
+Emotion_test_acc: 88.66(max: 88.66) Emotion_test_f1: 62.39(max: 62.39)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.59(max: 84.52)  APC_test_f1: 74.42(max: 75.39)
+ATE_test_f1: 63.6(max:68.43)
+Emotion_test_acc: 87.65(max: 88.66) Emotion_test_f1: 59.0(max: 62.39)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 82.99(max: 84.52)  APC_test_f1: 74.6(max: 75.39)
+ATE_test_f1: 63.73(max:68.43)
+Emotion_test_acc: 87.9(max: 88.66) Emotion_test_f1: 59.18(max: 62.39)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 83.25(max: 84.52)  APC_test_f1: 74.56(max: 75.39)
+ATE_test_f1: 68.1(max:68.43)
+Emotion_test_acc: 87.39(max: 88.66) Emotion_test_f1: 58.85(max: 62.39)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 82.23(max: 84.52)  APC_test_f1: 73.44(max: 75.39)
+ATE_test_f1: 63.23(max:68.43)
+Emotion_test_acc: 86.97(max: 88.66) Emotion_test_f1: 58.41(max: 62.39)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 82.53(max: 84.52)  APC_test_f1: 73.11(max: 75.39)
+ATE_test_f1: 60.73(max:68.43)
+Emotion_test_acc: 86.72(max: 88.66) Emotion_test_f1: 58.26(max: 62.39)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 82.7(max: 84.52)  APC_test_f1: 73.13(max: 75.39)
+ATE_test_f1: 66.48(max:68.43)
+Emotion_test_acc: 87.73(max: 88.66) Emotion_test_f1: 58.95(max: 62.39)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 82.95(max: 84.52)  APC_test_f1: 74.3(max: 75.39)
+ATE_test_f1: 64.38(max:68.43)
+Emotion_test_acc: 87.48(max: 88.66) Emotion_test_f1: 60.23(max: 62.39)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 80.92(max: 84.52)  APC_test_f1: 71.15(max: 75.39)
+ATE_test_f1: 63.68(max:68.43)
+Emotion_test_acc: 87.06(max: 88.66) Emotion_test_f1: 65.72(max: 65.72)
+********************************************************************************
+********************************************************************************
+Train 4 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 82.99(max: 84.52)  APC_test_f1: 73.88(max: 75.39)
+ATE_test_f1: 59.85(max:68.43)
+Emotion_test_acc: 87.39(max: 88.66) Emotion_test_f1: 61.42(max: 65.72)
+********************************************************************************
+max_ate_test_f1:68.43 max_apc_test_acc: 84.52	max_apc_test_f1: 75.39 	max_emotion_test_acc: 88.66	max_emotion_test_f1: 65.72
+No.5 training process of 5
+>>> dataset: restaurant
+>>> output_dir: output
+>>> SRD: 5
+>>> learning_rate: 3e-05
+>>> use_unique_bert: True
+>>> use_bert_spc: False
+>>> local_context_focus: cdm
+>>> num_train_epochs: 5.0
+>>> train_batch_size: 16
+>>> dropout: 0.0
+>>> max_seq_length: 80
+>>> eval_batch_size: 32
+>>> eval_steps: 20
+>>> gradient_accumulation_steps: 1
+>>> config_path: experiments.json
+>>> device: cpu
+>>> seed: 5
+>>> bert_model: bert-base-uncased
+>>> data_dir: atepc_datasets/restaurant
+***** Running training *****
+  Num examples = 3545
+  Batch size = 16
+  Num steps = 1105
+################################################################################
+Train 5 Epoch1
+################################################################################
+################################################################################
+Train 5 Epoch2
+################################################################################
+################################################################################
+Train 5 Epoch3
+################################################################################
+################################################################################
+Train 5 Epoch4
+################################################################################
+********************************************************************************
+Train 5 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 61.04(max: 61.04)  APC_test_f1: 27.32(max: 27.32)
+ATE_test_f1: 44.21(max:44.21)
+Emotion_test_acc: 64.47(max: 64.47) Emotion_test_f1: 29.07(max: 29.07)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 61.42(max: 61.42)  APC_test_f1: 25.94(max: 27.32)
+ATE_test_f1: 43.17(max:44.21)
+Emotion_test_acc: 65.57(max: 65.57) Emotion_test_f1: 32.49(max: 32.49)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 61.84(max: 61.84)  APC_test_f1: 31.48(max: 31.48)
+ATE_test_f1: 50.64(max:50.64)
+Emotion_test_acc: 64.72(max: 65.57) Emotion_test_f1: 29.57(max: 32.49)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 61.55(max: 61.84)  APC_test_f1: 32.9(max: 32.9)
+ATE_test_f1: 47.6(max:50.64)
+Emotion_test_acc: 64.55(max: 65.57) Emotion_test_f1: 29.38(max: 32.49)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 60.45(max: 61.84)  APC_test_f1: 27.36(max: 32.9)
+ATE_test_f1: 19.13(max:50.64)
+Emotion_test_acc: 63.45(max: 65.57) Emotion_test_f1: 26.86(max: 32.49)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 62.14(max: 62.14)  APC_test_f1: 34.23(max: 34.23)
+ATE_test_f1: 44.95(max:50.64)
+Emotion_test_acc: 65.74(max: 65.74) Emotion_test_f1: 35.72(max: 35.72)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 62.77(max: 62.77)  APC_test_f1: 29.45(max: 34.23)
+ATE_test_f1: 44.9(max:50.64)
+Emotion_test_acc: 67.17(max: 67.17) Emotion_test_f1: 35.39(max: 35.72)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 66.41(max: 66.41)  APC_test_f1: 37.27(max: 37.27)
+ATE_test_f1: 50.58(max:50.64)
+Emotion_test_acc: 71.49(max: 71.49) Emotion_test_f1: 43.82(max: 43.82)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 61.13(max: 66.41)  APC_test_f1: 28.17(max: 37.27)
+ATE_test_f1: 42.03(max:50.64)
+Emotion_test_acc: 64.47(max: 71.49) Emotion_test_f1: 29.21(max: 43.82)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 65.48(max: 66.41)  APC_test_f1: 38.84(max: 38.84)
+ATE_test_f1: 51.03(max:51.03)
+Emotion_test_acc: 68.95(max: 71.49) Emotion_test_f1: 38.63(max: 43.82)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch4, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 60.66(max: 66.41)  APC_test_f1: 26.67(max: 38.84)
+ATE_test_f1: 51.47(max:51.47)
+Emotion_test_acc: 63.79(max: 71.49) Emotion_test_f1: 27.41(max: 43.82)
+********************************************************************************
+################################################################################
+Train 5 Epoch5
+################################################################################
+********************************************************************************
+Train 5 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 59.9(max: 66.41)  APC_test_f1: 24.12(max: 38.84)
+ATE_test_f1: 50.62(max:51.47)
+Emotion_test_acc: 63.11(max: 71.49) Emotion_test_f1: 25.96(max: 43.82)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 65.69(max: 66.41)  APC_test_f1: 31.61(max: 38.84)
+ATE_test_f1: 48.48(max:51.47)
+Emotion_test_acc: 72.17(max: 72.17) Emotion_test_f1: 43.09(max: 43.82)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 68.61(max: 68.61)  APC_test_f1: 41.78(max: 41.78)
+ATE_test_f1: 49.17(max:51.47)
+Emotion_test_acc: 73.18(max: 73.18) Emotion_test_f1: 44.82(max: 44.82)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 72.0(max: 72.0)  APC_test_f1: 45.71(max: 45.71)
+ATE_test_f1: 52.49(max:52.49)
+Emotion_test_acc: 78.6(max: 78.6) Emotion_test_f1: 52.24(max: 52.24)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 69.2(max: 72.0)  APC_test_f1: 40.04(max: 45.71)
+ATE_test_f1: 48.81(max:52.49)
+Emotion_test_acc: 76.23(max: 78.6) Emotion_test_f1: 48.61(max: 52.24)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 68.87(max: 72.0)  APC_test_f1: 44.03(max: 45.71)
+ATE_test_f1: 50.12(max:52.49)
+Emotion_test_acc: 73.27(max: 78.6) Emotion_test_f1: 44.63(max: 52.24)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 67.51(max: 72.0)  APC_test_f1: 40.91(max: 45.71)
+ATE_test_f1: 49.0(max:52.49)
+Emotion_test_acc: 72.08(max: 78.6) Emotion_test_f1: 42.34(max: 52.24)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 72.63(max: 72.63)  APC_test_f1: 49.34(max: 49.34)
+ATE_test_f1: 52.26(max:52.49)
+Emotion_test_acc: 78.17(max: 78.6) Emotion_test_f1: 52.38(max: 52.38)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 70.85(max: 72.63)  APC_test_f1: 43.43(max: 49.34)
+ATE_test_f1: 51.68(max:52.49)
+Emotion_test_acc: 78.43(max: 78.6) Emotion_test_f1: 50.85(max: 52.38)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 73.18(max: 73.18)  APC_test_f1: 52.23(max: 52.23)
+ATE_test_f1: 50.85(max:52.49)
+Emotion_test_acc: 78.93(max: 78.93) Emotion_test_f1: 52.03(max: 52.38)
+********************************************************************************
+********************************************************************************
+Train 5 Epoch5, Evaluate for atepc_datasets/restaurant
+APC_test_acc: 73.86(max: 73.86)  APC_test_f1: 57.69(max: 57.69)
+ATE_test_f1: 42.54(max:52.49)
+Emotion_test_acc: 79.86(max: 79.86) Emotion_test_f1: 53.06(max: 53.06)
+********************************************************************************
+max_ate_test_f1:68.43 max_apc_test_acc: 84.52	max_apc_test_f1: 75.39 	max_emotion_test_acc: 88.66	max_emotion_test_f1: 65.72
